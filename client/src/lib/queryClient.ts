@@ -4,15 +4,18 @@ async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = await res.text();
     let errorMessage = `${res.status}: ${text}`;
+    let errorData: any = null;
     try {
       const json = JSON.parse(text);
-      errorMessage = json.error || errorMessage;
+      errorMessage = json.error || json.message || errorMessage;
+      errorData = json; // Сохраняем весь объект ответа
     } catch {
       // Not JSON, use text as is
     }
     const error: any = new Error(errorMessage);
     error.status = res.status;
     error.response = res;
+    error.responseData = errorData; // Добавляем данные ответа
     throw error;
   }
 }

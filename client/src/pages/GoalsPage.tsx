@@ -781,12 +781,23 @@ export default function GoalsPage() {
         });
       }
       setGoalSheetOpen(false);
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: error instanceof Error ? error.message : "Не удалось сохранить цель",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      // Проверка на ошибку лимита целей
+      if (error?.status === 403 && error?.responseData?.upgradeRequired) {
+        const errorData = error.responseData;
+        toast({
+          title: "Достигнут лимит целей",
+          description: errorData.message || `Вы достигли лимита активных целей (${errorData.current}/${errorData.limit}). Перейдите на более высокий тариф для создания большего количества целей.`,
+          variant: "destructive",
+          duration: 8000,
+        });
+      } else {
+        toast({
+          title: "Ошибка",
+          description: error instanceof Error ? error.message : "Не удалось сохранить цель",
+          variant: "destructive",
+        });
+      }
     }
   };
 
