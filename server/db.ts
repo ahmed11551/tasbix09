@@ -1,3 +1,7 @@
+// This file is kept for type compatibility but not used in production
+// We use Prisma (db-prisma.ts) instead of Drizzle
+
+/*
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
@@ -13,3 +17,8 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
+*/
+
+// Placeholder exports to avoid import errors
+export const pool = {} as any;
+export const db = {} as any;

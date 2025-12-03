@@ -1,3 +1,8 @@
+// This file is kept for type compatibility but not used in production
+// We use Prisma storage (storage-prisma.ts) instead
+// Uncomment below if you need to use Drizzle instead of Prisma
+
+/*
 import { 
   type User, 
   type InsertUser,
@@ -29,6 +34,7 @@ import {
 } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "./db";
+*/
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 
