@@ -33,7 +33,7 @@ const BADGE_DEFINITIONS = {
 };
 
 // Функция проверки и присвоения бейджей
-export async function checkAndAwardBadges(userId: string) {
+async function checkAndAwardBadges(userId: string) {
   const newBadges: any[] = [];
   
   try {
@@ -306,4 +306,5 @@ router.get("/:id", async (req, res, next) => {
 });
 
 export default router;
+export { checkAndAwardBadges };
 
