@@ -62,13 +62,12 @@ async function buildAll() {
     minify: true,
     external: [
       ...externals,
-      "@shared/schema",
-      "shared/schema",
+      /^@shared\/.*/,
+      /^shared\/.*/,
       "drizzle-orm",
       "drizzle-orm/pg-core",
       "drizzle-orm/neon-serverless",
       "drizzle-zod",
-      "@neondatabase/serverless",
     ],
     logLevel: "info",
   });
