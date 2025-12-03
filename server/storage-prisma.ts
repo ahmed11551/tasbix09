@@ -62,7 +62,7 @@ export interface IStorage {
   // Badges
   getBadges(userId: string): Promise<Badge[]>;
   getBadge(id: string, userId: string): Promise<Badge | null>;
-  createBadge(userId: string, badge: Prisma.BadgeCreateInput): Promise<Badge>;
+  createBadge(userId: string, badge: Omit<Prisma.BadgeCreateInput, 'user'>): Promise<Badge>;
   updateBadge(id: string, userId: string, updates: Prisma.BadgeUpdateInput): Promise<Badge>;
 
   // Calendar Events
