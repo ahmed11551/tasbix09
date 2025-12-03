@@ -87,12 +87,19 @@ enum Priority {
   high
 }
 
+enum SubscriptionTier {
+  muslim
+  mutahsin
+  sahibAlWaqf
+}
+
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String           @id @default(uuid())
+  username        String           @unique
+  password        String
+  subscriptionTier SubscriptionTier @default(muslim)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   habits        Habit[]
   tasks         Task[]
