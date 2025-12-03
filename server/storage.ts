@@ -4,6 +4,3 @@
 
 import { storage as prismaStorage } from "./storage-prisma";
 export const storage = prismaStorage;
-
-// Re-export IStorage interface from storage-prisma for type compatibility
-export type { IStorage } from "./storage-prisma";
