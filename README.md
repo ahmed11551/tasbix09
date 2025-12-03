@@ -55,22 +55,26 @@ npm run dev
 
 ## 📋 Переменные окружения
 
+### Для локальной разработки / Docker
+
 Создайте файл `.env` в корне проекта:
 
 ```env
 DATABASE_URL=postgresql://user:password@host:5432/database
 SESSION_SECRET=your-secret-key-min-32-chars
 TEST_TOKEN=test_token_123
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_BOT_TOKEN=8401186204:AAEnf7AsD1n8Nbfcp6fA6epuYJLchneteNs
 BOT_REPLIKA_API_URL=https://Bot.e-replika.ru/docs
 OPENAI_API_KEY=your-openai-api-key
 PORT=5000
 NODE_ENV=production
 ```
 
-**Для Docker:** Переменные можно задать в `.env` или напрямую в `docker-compose.yml`.
+### Для Vercel
 
-**Для Vercel:** Добавьте в Vercel Dashboard → Settings → Environment Variables.
+Добавьте переменные в **Vercel Dashboard → Settings → Environment Variables**.
+
+**Подробная инструкция:** См. [DEPLOY.md](./DEPLOY.md)
 
 ## 🤖 Telegram Mini App
 
@@ -103,9 +107,11 @@ NODE_ENV=production
 ✅ Офлайн режим  
 ✅ Telegram Mini App  
 
-## Документация
+## 📚 Документация
 
+- [DEPLOY.md](./DEPLOY.md) - **Финальный чеклист деплоя на Vercel**
 - [TELEGRAM_MINI_APP_GUIDE.md](./TELEGRAM_MINI_APP_GUIDE.md) - Полная инструкция по Telegram Mini App
+- [DEPLOYMENT_READINESS.md](./DEPLOYMENT_READINESS.md) - Отчет о готовности приложения
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Детальные инструкции по развертыванию (Docker, Vercel, локально)
 - [API_INTEGRATION.md](./API_INTEGRATION.md) - Документация API
 - [MODULE_FEDERATION.md](./MODULE_FEDERATION.md) - Module Federation
