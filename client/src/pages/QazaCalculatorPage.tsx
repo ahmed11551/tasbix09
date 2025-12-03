@@ -22,7 +22,7 @@ import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { prayerLabels } from '@/lib/constants';
 import { useQazaDebt, useCalculateQaza, useUpdateQazaProgress, useMarkQazaCalendarDay, useQazaCalendar, useCreateQazaGoal } from '@/hooks/use-api';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
