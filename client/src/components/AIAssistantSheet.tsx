@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
+import { getAuthOptions } from '@/lib/api';
 import { useHabits, useTasks, useGoals } from '@/hooks/use-api';
 
 interface AIAssistantSheetProps {
