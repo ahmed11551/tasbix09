@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { RotateCcw, Undo2, RefreshCw, Volume2, VolumeX } from 'lucide-react';
+import { RotateCcw, Undo2, RefreshCw, Volume2, VolumeX, Target } from 'lucide-react';
 import type { DhikrItem } from '@/lib/types';
 
 interface TasbihCounterProps {
