@@ -118,6 +118,43 @@ export default function TasbihPage() {
   };
 
   // Сохранить лог зикра (батчинг для оптимизации)
+  const handleLearnAction = useCallback(async (actionType: 'repeat' | 'learn_mark', count: number) => {
+    const sessionId = await ensureSession();
+    if (!sessionId) return;
+
+    try {
+      await createDhikrLogMutation.mutateAsync({
+        sessionId,
+        goalId: linkedGoal?.id || undefined,
+        category: selectedItem.category,
+        itemId: selectedItem.id,
+        eventType: actionType,
+        delta: actionType === 'repeat' ? 1 : 0,
+        valueAfter: count,
+        prayerSegment: selectedPrayer,
+      });
+
+      // Если цель связана и это отметка "Выучил", завершить цель
+      if (actionType === 'learn_mark' && linkedGoal) {
+        await updateGoalMutation.mutateAsync({
+          id: linkedGoal.id,
+          data: {
+            currentProgress: linkedGoal.targetCount,
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+          },
+        });
+
+        toast({
+          title: "Цель достигнута!",
+          description: `Машааллах! Вы выучили "${linkedGoal.title}"!`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save learn action:', error);
+    }
+  }, [ensureSession, createDhikrLogMutation, linkedGoal, selectedItem, selectedPrayer, updateGoalMutation, toast]);
+
   const saveDhikrLog = async (delta: number, valueAfter: number) => {
     const sessionId = await ensureSession();
     if (!sessionId) return;
@@ -444,12 +481,14 @@ export default function TasbihPage() {
             counterKey={counterKey}
             targetCount={linkedGoal ? linkedGoal.targetCount - linkedGoal.currentProgress : undefined}
             onCountChange={handleCountChange}
+            onLearnAction={handleLearnAction}
             onComplete={handleComplete}
             showTranscription={showTranscription}
             showTranslation={showTranslation}
             showAudioPlayer={showAudioPlayer}
             transcriptionType={transcriptionType}
             linkedGoalTitle={linkedGoal?.title}
+            goalType={linkedGoal?.goalType || 'recite'}
           />
         </div>
 

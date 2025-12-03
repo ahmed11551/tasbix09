@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { RotateCcw, Undo2, RefreshCw, Volume2, VolumeX, Target } from 'lucide-react';
+import { RotateCcw, Undo2, RefreshCw, Volume2, VolumeX, Target, RotateCw, CheckCircle2 } from 'lucide-react';
 import type { DhikrItem } from '@/lib/types';
 
 interface TasbihCounterProps {
@@ -12,6 +12,7 @@ interface TasbihCounterProps {
   initialRounds?: number;
   counterKey?: string;
   onCountChange?: (count: number, delta: number, rounds: number) => void;
+  onLearnAction?: (actionType: 'repeat' | 'learn_mark', count: number) => void;
   onComplete?: () => void;
   showSettings?: boolean;
   showTranscription?: boolean;
@@ -19,6 +20,7 @@ interface TasbihCounterProps {
   showAudioPlayer?: boolean;
   transcriptionType?: 'latin' | 'cyrillic';
   linkedGoalTitle?: string;
+  goalType?: 'recite' | 'learn';
 }
 
 export default function TasbihCounter({
@@ -28,6 +30,7 @@ export default function TasbihCounter({
   initialRounds,
   counterKey,
   onCountChange,
+  onLearnAction,
   onComplete,
   showSettings = true,
   showTranscription = true,
@@ -35,6 +38,7 @@ export default function TasbihCounter({
   showAudioPlayer = true,
   transcriptionType = 'cyrillic',
   linkedGoalTitle,
+  goalType = 'recite',
 }: TasbihCounterProps) {
   const computedRounds = initialRounds ?? Math.floor(initialCount / 100);
   const [count, setCount] = useState(initialCount);
@@ -45,12 +49,15 @@ export default function TasbihCounter({
   const [lastAction, setLastAction] = useState<{ delta: number; time: number } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioSupported, setAudioSupported] = useState(true);
+  const [repeatCount, setRepeatCount] = useState(0);
+  const [isLearned, setIsLearned] = useState(false);
   const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTapTimeRef = useRef<number>(0);
   const prevKeyRef = useRef<string | undefined>(counterKey);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const ROUND_SIZE = 100;
+  const isLearnMode = goalType === 'learn';
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -106,6 +113,9 @@ export default function TasbihCounter({
       setGoalTarget(targetCount || null);
       setShowUndo(false);
       setLastAction(null);
+      // Сброс для режима learn
+      setRepeatCount(0);
+      setIsLearned(false);
       prevKeyRef.current = currentKey;
     }
   }, [counterKey, item?.id, initialCount, initialRounds, targetCount, isPlaying]);
@@ -196,6 +206,33 @@ export default function TasbihCounter({
     setGoalTarget(target);
   }, []);
 
+  // Обработчики для режима learn
+  const handleRepeat = useCallback(() => {
+    const newRepeatCount = repeatCount + 1;
+    setRepeatCount(newRepeatCount);
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 150);
+    onLearnAction?.('repeat', newRepeatCount);
+    
+    // Если цель достигнута (например, 10 повторов), можно отметить как выученное
+    if (goalTarget && newRepeatCount >= goalTarget) {
+      setIsLearned(true);
+      onLearnAction?.('learn_mark', newRepeatCount);
+      onComplete?.();
+    }
+  }, [repeatCount, goalTarget, onLearnAction, onComplete]);
+
+  const handleMarkLearned = useCallback(() => {
+    setIsLearned(true);
+    onLearnAction?.('learn_mark', repeatCount || 1);
+    onComplete?.();
+  }, [repeatCount, onLearnAction, onComplete]);
+
+  const handleResetLearn = useCallback(() => {
+    setRepeatCount(0);
+    setIsLearned(false);
+  }, []);
+
   const goalButtons = [33, 99, 100, 500, 1000];
 
   return (
@@ -257,165 +294,227 @@ export default function TasbihCounter({
         </Card>
       )}
 
-      <div className="relative flex items-center justify-center gap-3 w-full">
-        <div className="flex flex-col items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground">Цель</span>
-          {goalButtons.slice(0, 3).map((target) => (
-            <Button
-              key={target}
-              variant={goalTarget === target ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleSetGoal(target)}
-              data-testid={`button-goal-${target}`}
-              className="w-12 h-7 text-xs"
-            >
-              {target}
-            </Button>
-          ))}
-        </div>
+      {isLearnMode ? (
+        // Режим learn: кнопки "Повторил" и "Выучил"
+        <div className="flex flex-col items-center gap-4 w-full">
+          <div className="text-center space-y-2">
+            <div className="text-4xl font-bold text-primary">{repeatCount}</div>
+            <div className="text-sm text-muted-foreground">
+              {goalTarget ? `Цель: ${goalTarget} повторов` : 'Количество повторов'}
+            </div>
+            {isLearned && (
+              <div className="flex items-center justify-center gap-2 text-green-600 text-sm font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                Выучено!
+              </div>
+            )}
+          </div>
 
-        <button
-          onClick={() => handleTap(1)}
-          disabled={isGoalComplete}
-          className={cn(
-            "relative w-48 h-48 rounded-full flex items-center justify-center",
-            "bg-gradient-to-br from-primary/90 to-primary",
-            "border-4 border-primary-border",
-            "transition-all duration-150",
-            "focus:outline-none focus:ring-4 focus:ring-ring/50",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            isAnimating && "animate-tap-pulse"
-          )}
-          data-testid="button-tap-counter"
-          aria-label={`Счетчик: ${displayCount}`}
-        >
-          <svg className="absolute inset-0 w-full h-full -rotate-90">
-            <circle
-              cx="50%"
-              cy="50%"
-              r="47%"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              className="text-primary-foreground/20"
-            />
-            <circle
-              cx="50%"
-              cy="50%"
-              r="47%"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeDasharray={`${progress * 2.95} 295`}
-              strokeLinecap="round"
-              className="text-primary-foreground transition-all duration-300"
-            />
-          </svg>
-          
-          <div className="flex flex-col items-center z-10">
-            <span 
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <Button
+              onClick={handleRepeat}
+              disabled={isLearned}
+              size="lg"
               className={cn(
-                "font-display text-5xl font-bold text-primary-foreground",
-                isAnimating && "animate-counter-pop"
+                "h-14 text-base font-medium gap-2",
+                isAnimating && "animate-tap-pulse"
               )}
+              data-testid="button-repeat"
             >
-              {displayCount}
-            </span>
-            {goalTarget && (
-              <span className="text-[10px] text-primary-foreground/80 mt-0.5">
-                осталось из {goalTarget}
-              </span>
-            )}
-          </div>
-        </button>
-
-        <div className="flex flex-col items-center gap-1.5">
-          <div 
-            className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center",
-              "bg-gold/20 border-2 border-gold",
-              "shadow-sm"
-            )}
-            data-testid="rounds-counter"
-          >
-            <span className="font-display text-lg font-bold text-gold">
-              {rounds}
-            </span>
-          </div>
-          <span className="text-[10px] text-muted-foreground text-center leading-tight">
-            кругов
-          </span>
-          {goalButtons.slice(3).map((target) => (
-            <Button
-              key={target}
-              variant={goalTarget === target ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleSetGoal(target)}
-              data-testid={`button-goal-${target}`}
-              className="w-12 h-7 text-xs"
-            >
-              {target}
+              <RotateCw className="w-5 h-5" />
+              Повторил
             </Button>
-          ))}
+
+            <Button
+              onClick={handleMarkLearned}
+              disabled={isLearned}
+              variant={isLearned ? "default" : "outline"}
+              size="lg"
+              className="h-14 text-base font-medium gap-2"
+              data-testid="button-mark-learned"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              {isLearned ? 'Выучено' : 'Выучил'}
+            </Button>
+
+            {(repeatCount > 0 || isLearned) && (
+              <Button
+                onClick={handleResetLearn}
+                variant="ghost"
+                size="sm"
+                className="mt-2"
+                data-testid="button-reset-learn"
+              >
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Сбросить
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        // Режим recite: обычный счетчик
+        <>
+          <div className="relative flex items-center justify-center gap-3 w-full">
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-[10px] text-muted-foreground">Цель</span>
+              {goalButtons.slice(0, 3).map((target) => (
+                <Button
+                  key={target}
+                  variant={goalTarget === target ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSetGoal(target)}
+                  data-testid={`button-goal-${target}`}
+                  className="w-12 h-7 text-xs"
+                >
+                  {target}
+                </Button>
+              ))}
+            </div>
 
-      {showUndo && lastAction && (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleUndo}
-          className="animate-slide-up gap-2"
-          data-testid="button-undo"
-        >
-          <Undo2 className="w-4 h-4" />
-          Отменить +{lastAction.delta}
-        </Button>
-      )}
+            <button
+              onClick={() => handleTap(1)}
+              disabled={isGoalComplete}
+              className={cn(
+                "relative w-48 h-48 rounded-full flex items-center justify-center",
+                "bg-gradient-to-br from-primary/90 to-primary",
+                "border-4 border-primary-border",
+                "transition-all duration-150",
+                "focus:outline-none focus:ring-4 focus:ring-ring/50",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                isAnimating && "animate-tap-pulse"
+              )}
+              data-testid="button-tap-counter"
+              aria-label={`Счетчик: ${displayCount}`}
+            >
+              <svg className="absolute inset-0 w-full h-full -rotate-90">
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r="47%"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  className="text-primary-foreground/20"
+                />
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r="47%"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeDasharray={`${progress * 2.95} 295`}
+                  strokeLinecap="round"
+                  className="text-primary-foreground transition-all duration-300"
+                />
+              </svg>
+              
+              <div className="flex flex-col items-center z-10">
+                <span 
+                  className={cn(
+                    "font-display text-5xl font-bold text-primary-foreground",
+                    isAnimating && "animate-counter-pop"
+                  )}
+                >
+                  {displayCount}
+                </span>
+                {goalTarget && (
+                  <span className="text-[10px] text-primary-foreground/80 mt-0.5">
+                    осталось из {goalTarget}
+                  </span>
+                )}
+              </div>
+            </button>
 
-      <div className="flex items-center gap-2 pt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleReset}
-          data-testid="button-reset"
-          aria-label="Сбросить счетчик"
-          className="gap-1.5 text-xs"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Сбросить
-        </Button>
-        
-        {goalTarget && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setGoalTarget(null)}
-            className="text-xs text-muted-foreground"
-          >
-            Убрать цель
-          </Button>
-        )}
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleFullReset}
-          data-testid="button-full-reset"
-          aria-label="Сбросить всё"
-          className="gap-1.5 text-xs text-muted-foreground"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Сбросить всё
-        </Button>
-      </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <div 
+                className={cn(
+                  "w-12 h-12 rounded-full flex items-center justify-center",
+                  "bg-gold/20 border-2 border-gold",
+                  "shadow-sm"
+                )}
+                data-testid="rounds-counter"
+              >
+                <span className="font-display text-lg font-bold text-gold">
+                  {rounds}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground text-center leading-tight">
+                кругов
+              </span>
+              {goalButtons.slice(3).map((target) => (
+                <Button
+                  key={target}
+                  variant={goalTarget === target ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSetGoal(target)}
+                  data-testid={`button-goal-${target}`}
+                  className="w-12 h-7 text-xs"
+                >
+                  {target}
+                </Button>
+              ))}
+            </div>
+          </div>
 
-      {isGoalComplete && (
-        <div className="text-center animate-fade-in">
-          <p className="text-lg font-semibold text-primary">
-            Машааллах! Цель достигнута!
-          </p>
-        </div>
+          {showUndo && lastAction && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleUndo}
+              className="animate-slide-up gap-2"
+              data-testid="button-undo"
+            >
+              <Undo2 className="w-4 h-4" />
+              Отменить +{lastAction.delta}
+            </Button>
+          )}
+
+          <div className="flex items-center gap-2 pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              data-testid="button-reset"
+              aria-label="Сбросить счетчик"
+              className="gap-1.5 text-xs"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Сбросить
+            </Button>
+            
+            {goalTarget && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setGoalTarget(null)}
+                className="text-xs text-muted-foreground"
+              >
+                Убрать цель
+              </Button>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleFullReset}
+              data-testid="button-full-reset"
+              aria-label="Сбросить всё"
+              className="gap-1.5 text-xs text-muted-foreground"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Сбросить всё
+            </Button>
+          </div>
+
+          {isGoalComplete && (
+            <div className="text-center animate-fade-in">
+              <p className="text-lg font-semibold text-primary">
+                Машааллах! Цель достигнута!
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
