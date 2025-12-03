@@ -45,7 +45,7 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 import { prayerLabels } from '@/lib/constants';
-import { useGoals, useStats, useDailyAzkar } from '@/hooks/use-api';
+import { useGoals, useStats, useDailyAzkar, useBadges, useCheckBadges } from '@/hooks/use-api';
 import { Check, ListChecks } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Task, Subtask, Habit, WeekDay } from '@/lib/types';
@@ -98,6 +98,8 @@ export default function ReportsPage() {
   const { habits, tasks, toggleHabitDay } = useData();
   const { data: goals = [] } = useGoals();
   const { data: stats } = useStats();
+  const { data: badges = [] } = useBadges();
+  const checkBadgesMutation = useCheckBadges();
   const today = new Date().toISOString().split('T')[0];
   const { data: dailyAzkarData } = useDailyAzkar(today);
   
@@ -106,6 +108,15 @@ export default function ReportsPage() {
   const [missedSheetOpen, setMissedSheetOpen] = useState(false);
   const [pendingSheetOpen, setPendingSheetOpen] = useState(false);
   const [todayHabitsSheetOpen, setTodayHabitsSheetOpen] = useState(false);
+
+  // Проверить бейджи при загрузке
+  React.useEffect(() => {
+    checkBadgesMutation.mutate();
+  }, []);
+
+  // Разделить бейджи на разблокированные и заблокированные
+  const unlockedBadges = badges.filter((b: any) => b.isUnlocked);
+  const lockedBadges = badges.filter((b: any) => !b.isUnlocked);
 
   const handleMarkHabitComplete = (habitId: string, dateKey: string) => {
     toggleHabitDay(habitId, dateKey);
@@ -423,9 +434,6 @@ export default function ReportsPage() {
   ];
 
   const completedGoals = goals.filter((g: any) => g.status === 'completed');
-  // Badges пока не реализованы в API, используем пустые массивы
-  const unlockedBadges: any[] = [];
-  const lockedBadges: any[] = [];
 
   return (
     <div className="min-h-screen bg-background pb-20">

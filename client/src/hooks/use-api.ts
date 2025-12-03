@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { habitsApi, tasksApi, goalsApi, sessionsApi, dhikrApi, statsApi, qazaApi } from "@/lib/api";
-import type { Habit, Task, Goal } from "@/lib/types";
+import { habitsApi, tasksApi, goalsApi, sessionsApi, dhikrApi, statsApi, qazaApi, badgesApi } from "@/lib/api";
+import type { Habit, Task, Goal, Badge } from "@/lib/types";
 
 // Habits
 export function useHabits() {
@@ -333,6 +333,30 @@ export function useCreateQazaGoal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["qaza-debt"] });
+    },
+  });
+}
+
+// Badges
+export function useBadges() {
+  return useQuery({
+    queryKey: ["badges"],
+    queryFn: async () => {
+      const res = await badgesApi.getAll();
+      return res.badges as Badge[];
+    },
+  });
+}
+
+export function useCheckBadges() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await badgesApi.check();
+      return res.newBadges;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["badges"] });
     },
   });
 }

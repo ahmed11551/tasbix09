@@ -10,6 +10,7 @@ import statsRoutes from "./routes/stats";
 import aiRoutes from "./routes/ai";
 import telegramRoutes from "./routes/telegram";
 import qazaRoutes from "./routes/qaza";
+import badgesRoutes from "./routes/badges";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -26,6 +27,7 @@ export async function registerRoutes(
   app.use("/api/ai", aiRoutes);
   app.use("/api/telegram", telegramRoutes);
   app.use("/api/qaza", qazaRoutes);
+  app.use("/api/badges", badgesRoutes);
 
   return httpServer;
 }

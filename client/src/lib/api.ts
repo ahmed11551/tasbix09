@@ -257,3 +257,21 @@ export const qazaApi = {
   },
 };
 
+// Badges API
+export const badgesApi = {
+  getAll: async (): Promise<{ badges: any[]; newBadges?: any[] }> => {
+    const res = await apiRequest("GET", "/api/badges", undefined, getAuthOptions());
+    return res.json();
+  },
+  
+  check: async (): Promise<{ newBadges: any[] }> => {
+    const res = await apiRequest("POST", "/api/badges/check", undefined, getAuthOptions());
+    return res.json();
+  },
+  
+  getById: async (id: string): Promise<{ badge: any }> => {
+    const res = await apiRequest("GET", `/api/badges/${id}`, undefined, getAuthOptions());
+    return res.json();
+  },
+};
+
