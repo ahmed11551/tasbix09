@@ -78,7 +78,6 @@
     "ws": "^8.18.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0",
-    "@twa-dev/sdk": "^1.0.0",
     "cors": "^2.8.5"
   },
   "devDependencies": {
