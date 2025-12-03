@@ -41,11 +41,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Регистрация роутов
-(async () => {
-  await registerRoutes(null as any, app);
-  app.use(errorHandler);
-})();
+let routesRegistered = false;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!routesRegistered) {
+    await registerRoutes(null as any, app);
+    app.use(errorHandler);
+    routesRegistered = true;
+  }
+  
   return app(req as any, res as any);
 }
