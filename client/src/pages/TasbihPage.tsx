@@ -27,6 +27,8 @@ import {
   useCreateDhikrLog,
   useUpdateGoal,
   useUpsertDailyAzkar,
+  useQazaDebt,
+  useUpdateQazaProgress,
 } from '@/hooks/use-api';
 import { getTodayDhikrItem, getDhikrItemsByCategory } from '@/lib/dhikrUtils';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +53,7 @@ export default function TasbihPage() {
   const createDhikrLogMutation = useCreateDhikrLog();
   const updateGoalMutation = useUpdateGoal();
   const upsertDailyAzkarMutation = useUpsertDailyAzkar();
+  const updateQazaProgressMutation = useUpdateQazaProgress();
 
   // Текущая активная сессия
   const currentSessionIdRef = useRef<string | null>(null);
@@ -224,6 +227,24 @@ export default function TasbihPage() {
             dateLocal: today,
             ...newDailyAzkar,
           });
+
+          // Обновить прогресс Каза, если есть долг и это салаваты
+          // (считаем, что салаваты после намаза засчитываются как восполнение)
+          if (qazaDebt && selectedItem.category === 'salawat' && selectedPrayer !== 'none') {
+            const qazaPrayer = selectedPrayer; // fajr, dhuhr, asr, maghrib, isha
+            if (qazaPrayer !== 'none') {
+              const currentQazaProgress = qazaDebt[`${qazaPrayer}Progress` as keyof typeof qazaDebt] as number || 0;
+              const qazaDebtAmount = qazaDebt[`${qazaPrayer}Debt` as keyof typeof qazaDebt] as number || 0;
+              
+              // Обновляем прогресс только если есть долг по этому намазу
+              if (qazaDebtAmount > currentQazaProgress) {
+                await updateQazaProgressMutation.mutateAsync({
+                  prayer: qazaPrayer,
+                  count: Math.min(currentQazaProgress + lastLog.delta, qazaDebtAmount),
+                });
+              }
+            }
+          }
         }
 
         logBatchRef.current = [];
