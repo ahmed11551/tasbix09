@@ -894,26 +894,27 @@ export default function GoalsPage() {
     setTaskSheetOpen(true);
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      await deleteTask(taskId);
-      toast({
-        title: "Задача удалена",
-        description: "Задача успешно удалена",
-      });
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось удалить задачу",
-        variant: "destructive",
-      });
-    }
+  const handleDeleteTask = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setTaskDeleteDialogOpen(true);
   };
 
   const confirmDeleteTask = async () => {
     if (taskToDelete) {
-      await handleDeleteTask(taskToDelete);
-      setTaskToDelete(null);
+      try {
+        await deleteTask(taskToDelete);
+        toast({
+          title: "Задача удалена",
+          description: "Задача успешно удалена",
+        });
+        setTaskToDelete(null);
+      } catch (error) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось удалить задачу",
+          variant: "destructive",
+        });
+      }
     }
     setTaskDeleteDialogOpen(false);
   };
@@ -921,11 +922,6 @@ export default function GoalsPage() {
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setTaskSheetOpen(true);
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    setTaskToDelete(taskId);
-    setTaskDeleteDialogOpen(true);
   };
 
 
