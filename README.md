@@ -2,6 +2,37 @@
 
 Полнофункциональное приложение для отслеживания исламских духовных практик: тасбих, зикры, цели, привычки и задачи.
 
+## 🚀 Быстрый старт
+
+### Telegram Mini App (рекомендуется)
+
+1. **Деплой на Vercel:** [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
+2. **Создание бота:** [TELEGRAM_MINI_APP_GUIDE.md](./TELEGRAM_MINI_APP_GUIDE.md)
+3. **Быстрая инструкция:** [QUICK_START_TELEGRAM.md](./QUICK_START_TELEGRAM.md)
+
+### Локальный запуск
+
+```bash
+# Установить зависимости
+npm install
+
+# Настроить .env
+cp .env.example .env
+
+# Применить миграции
+npm run db:generate
+npm run db:push
+
+# Запустить
+npm run dev
+```
+
+### Docker
+
+```bash
+docker-compose up -d
+```
+
 ## Технологии
 
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + shadcn/ui
@@ -12,12 +43,13 @@
 - **AI**: OpenAI GPT-4o-mini
 - **Offline Support**: IndexedDB
 - **Micro Frontend**: Module Federation (Vite)
-- **Deployment**: Docker + Docker Compose
+- **Deployment**: Vercel + Docker
+- **Telegram**: Mini App интеграция
 
 ## Функциональность
 
 ✅ **Полностью реализовано:**
-- Аутентификация (регистрация, вход, выход)
+- Аутентификация (регистрация, вход, Telegram auth)
 - Управление привычками (создание, редактирование, удаление, отслеживание прогресса)
 - Управление задачами (с подзадачами, приоритетами, дедлайнами)
 - Управление целями (с прогрессом и статусами)
@@ -28,149 +60,15 @@
 - Офлайн режим с синхронизацией
 - Уведомления и напоминания
 - Калькулятор казы (восполнение пропущенных намазов)
-
-## Быстрый запуск
-
-### Вариант 1: Docker (рекомендуется) 🐳
-
-```bash
-# Создать .env файл
-cp .env.example .env
-
-# Запустить всё одной командой
-docker-compose up -d
-
-# Приложение доступно на http://localhost:5000
-```
-
-Или используйте скрипт:
-```bash
-chmod +x setup-and-run.sh
-./setup-and-run.sh
-```
-
-### Вариант 2: Локальная разработка 💻
-
-```bash
-# Установить зависимости
-npm install
-
-# Настроить .env файл
-cp .env.example .env
-# Отредактировать DATABASE_URL
-
-# Применить миграции
-npm run db:generate
-npm run db:push
-
-# Запустить
-npm run dev
-```
-
-### Требования
-- Node.js 20+ (для локальной разработки)
-- PostgreSQL 16+ (или Docker)
-- OpenAI API ключ (опционально, для AI ассистента)
-
-## Переменные окружения
-
-Создайте файл `.env` в корне проекта:
-
-```env
-DATABASE_URL=postgresql://user:password@host:5432/database
-SESSION_SECRET=your-secret-key-here
-TEST_TOKEN=test_token_123
-BOT_REPLIKA_API_URL=https://Bot.e-replika.ru/docs
-OPENAI_API_KEY=your-openai-api-key-here
-PORT=5000
-NODE_ENV=development
-```
-
-## Настройка базы данных
-
-```bash
-# Сгенерировать Prisma Client
-npm run db:generate
-
-# Применить миграции (создать таблицы)
-npm run db:push
-
-# Или создать миграцию
-npm run db:migrate
-
-# Открыть Prisma Studio (GUI для БД)
-npm run db:studio
-```
-
-## Запуск приложения
-
-```bash
-# Режим разработки
-npm run dev
-
-# Сборка для продакшена
-npm run build
-
-# Запуск продакшн версии
-npm start
-```
-
-### Запуск через Docker (рекомендуется)
-
-```bash
-# Запустить все сервисы (PostgreSQL + App)
-docker-compose up -d
-
-# Просмотр логов
-docker-compose logs -f
-
-# Остановить
-docker-compose down
-
-# Остановить и удалить данные
-docker-compose down -v
-```
-
-Приложение будет доступно по адресу: `http://localhost:5000`
-
-**Переменные окружения для Docker:**
-Создайте файл `.env` или передайте переменные в `docker-compose.yml`:
-```env
-SESSION_SECRET=your-secret-key
-TEST_TOKEN=test_token_123
-BOT_REPLIKA_API_URL=https://Bot.e-replika.ru/docs
-OPENAI_API_KEY=your-openai-key
-```
-
-## Интеграция с Bot.e-replika.ru
-
-Приложение поддерживает токен-авторизацию для интеграции с бэкендом Владимира:
-
-```http
-Authorization: Bearer test_token_123
-X-User-Id: user-id
-```
-
-Подробнее см. [API_INTEGRATION.md](./API_INTEGRATION.md)
-
-## Module Federation
-
-Фронтенд настроен как микрофронтенд через Module Federation. Экспортируемые модули:
-- `./App` - главный компонент приложения
-- `./components` - компоненты UI
-
-Использование в хостовом приложении:
-```typescript
-import { TasbihCounter } from 'smartTasbih/components';
-```
-
-Подробнее см. [MODULE_FEDERATION.md](./MODULE_FEDERATION.md)
+- **Telegram Mini App** - полная интеграция
 
 ## Документация
 
-- [API_INTEGRATION.md](./API_INTEGRATION.md) - Полная документация API
+- [TELEGRAM_MINI_APP_GUIDE.md](./TELEGRAM_MINI_APP_GUIDE.md) - Полная инструкция по Telegram Mini App
+- [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) - Деплой на Vercel
+- [API_INTEGRATION.md](./API_INTEGRATION.md) - Документация API
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Инструкции по развертыванию
-- [MODULE_FEDERATION.md](./MODULE_FEDERATION.md) - Документация Module Federation
+- [MODULE_FEDERATION.md](./MODULE_FEDERATION.md) - Module Federation
 
 ## Структура проекта
 
@@ -179,6 +77,22 @@ import { TasbihCounter } from 'smartTasbih/components';
 ├── server/          # Backend (Express + TypeScript)
 ├── prisma/          # Prisma schema и миграции
 ├── shared/          # Общие типы
-└── docker-compose.yml  # Docker конфигурация
+└── vercel.json      # Vercel конфигурация
 ```
 
+## Переменные окружения
+
+```env
+DATABASE_URL=postgresql://user:password@host:5432/database
+SESSION_SECRET=your-secret-key
+TEST_TOKEN=test_token_123
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+BOT_REPLIKA_API_URL=https://Bot.e-replika.ru/docs
+OPENAI_API_KEY=your-openai-key
+PORT=5000
+NODE_ENV=production
+```
+
+## Лицензия
+
+MIT
