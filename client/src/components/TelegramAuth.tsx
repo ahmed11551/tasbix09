@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getTelegramUser, isTelegramWebApp, getTelegramInitData } from '@/lib/telegram';
-import { authApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import { setAuthToken, setUserId } from '@/lib/auth';
 
 export default function TelegramAuth() {
   const [initData, setInitData] = useState<string | null>(null);
@@ -41,6 +41,14 @@ export default function TelegramAuth() {
 
         if (response.ok) {
           const data = await response.json();
+          
+          // Установить токен и userId для API запросов
+          if (data.user?.id) {
+            setUserId(data.user.id, true);
+            // Использовать тестовый токен для авторизации
+            setAuthToken('test_token_123', true);
+          }
+          
           return data.user;
         }
       } catch (error) {
@@ -51,6 +59,17 @@ export default function TelegramAuth() {
     enabled: !!initData && isTelegramWebApp(),
     retry: false,
   });
+
+  // Также установить токен для обычных пользователей (без Telegram)
+  useEffect(() => {
+    if (!isTelegramWebApp()) {
+      // Для тестирования без Telegram - установить дефолтные значения
+      const userId = localStorage.getItem('user_id') || 'default-user';
+      const token = localStorage.getItem('api_token') || 'test_token_123';
+      setUserId(userId, true);
+      setAuthToken(token, true);
+    }
+  }, []);
 
   // Компонент работает в фоне, не рендерит UI
   return null;

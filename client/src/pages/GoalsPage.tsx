@@ -54,14 +54,29 @@ import {
 import HabitCatalogSheet from '@/components/HabitCatalogSheet';
 import HabitCreationSheet from '@/components/HabitCreationSheet';
 import TaskCreationSheet from '@/components/TaskCreationSheet';
+import GoalCreationSheet from '@/components/GoalCreationSheet';
+import GoalCard from '@/components/GoalCard';
 import AIAssistantSheet from '@/components/AIAssistantSheet';
 import CalendarSheet from '@/components/CalendarSheet';
-import type { Habit, Task, WeekDay } from '@/lib/types';
+import type { Habit, Task, Goal, WeekDay } from '@/lib/types';
 import type { HabitTemplate } from '@/lib/habitsCatalog';
 import { habitCategories } from '@/lib/habitsCatalog';
 import { cn } from '@/lib/utils';
 import { getIconByName } from '@/lib/iconUtils';
 import { useData } from '@/context/DataContext';
+import { 
+  useGoals, 
+  useCreateGoal, 
+  useUpdateGoal, 
+  useDeleteGoal,
+  useCreateHabit,
+  useUpdateHabit,
+  useDeleteHabit,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+} from '@/hooks/use-api';
+import { useToast } from '@/hooks/use-toast';
 
 function getWeekDays(baseDate: Date = new Date()): { date: Date; dayName: string; dayNum: number; isToday: boolean }[] {
   const days = [];
@@ -485,21 +500,33 @@ export default function GoalsPage() {
   const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
   const highlightHabitId = searchParams.get('highlightHabit');
+  const { toast } = useToast();
+  
+  // API hooks
+  const { data: goals = [], isLoading: goalsLoading } = useGoals();
+  const createGoalMutation = useCreateGoal();
+  const updateGoalMutation = useUpdateGoal();
+  const deleteGoalMutation = useDeleteGoal();
   
   const { 
     habits, 
     tasks, 
-    setHabits, 
-    setTasks, 
     addHabit, 
+    updateHabit,
     deleteHabit, 
     toggleHabitDay,
+    addTask,
+    updateTask,
+    deleteTask,
+    toggleTask,
     toggleSubtask 
   } = useData();
   
+  const [goalsOpen, setGoalsOpen] = useState(true);
   const [tasksOpen, setTasksOpen] = useState(true);
   const [habitsOpen, setHabitsOpen] = useState(true);
   const [taskFilter, setTaskFilter] = useState<'all' | 'today' | 'tomorrow' | 'no_date'>('all');
+  const [goalFilter, setGoalFilter] = useState<'all' | 'active' | 'completed' | 'archived'>('all');
   const [highlightedHabitId, setHighlightedHabitId] = useState<string | null>(null);
   
   const habitRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -509,6 +536,11 @@ export default function GoalsPage() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [habitToDelete, setHabitToDelete] = useState<string | null>(null);
+  
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [goalDeleteDialogOpen, setGoalDeleteDialogOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
   
   const [taskSheetOpen, setTaskSheetOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -548,34 +580,67 @@ export default function GoalsPage() {
     return habits.filter(h => h.category === habitCategoryFilter);
   }, [habits, habitCategoryFilter]);
 
+  const filteredGoals = useMemo(() => {
+    if (goalFilter === 'all') return goals;
+    return goals.filter(g => g.status === goalFilter);
+  }, [goals, goalFilter]);
+
+  const filteredTasks = useMemo(() => {
+    let result = tasks;
+    
+    if (taskFilter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      result = result.filter(t => t.dueDate === today);
+    } else if (taskFilter === 'tomorrow') {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      result = result.filter(t => t.dueDate === tomorrowStr);
+    } else if (taskFilter === 'no_date') {
+      result = result.filter(t => !t.dueDate);
+    }
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(t => 
+        t.title.toLowerCase().includes(query) ||
+        t.description?.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
+  }, [tasks, taskFilter, searchQuery]);
+
   const handleSelectFromCatalog = (template: HabitTemplate) => {
     setSelectedTemplate(template);
     setHabitSheetOpen(true);
   };
 
-  const handleCreateHabit = (habitData: Partial<Habit>) => {
-    if (editingHabit) {
-      setHabits(habits.map(h => 
-        h.id === editingHabit.id 
-          ? { ...h, ...habitData }
-          : h
-      ));
-      setEditingHabit(null);
-    } else {
-      const newHabit: Habit = {
-        ...habitData,
-        id: String(Date.now()),
-        userId: 'user1',
-        currentStreak: 0,
-        longestStreak: 0,
-        completedDates: [],
-        createdAt: new Date().toISOString(),
-        isActive: true,
-      } as Habit;
-      
-      setHabits([...habits, newHabit]);
+  const handleCreateHabit = async (habitData: Partial<Habit>) => {
+    try {
+      if (editingHabit) {
+        await updateHabit(editingHabit.id, habitData);
+        setEditingHabit(null);
+        toast({
+          title: "Привычка обновлена",
+          description: "Изменения сохранены",
+        });
+      } else {
+        await addHabit(habitData);
+        toast({
+          title: "Привычка создана",
+          description: "Новая привычка добавлена",
+        });
+      }
+      setSelectedTemplate(null);
+      setHabitSheetOpen(false);
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: error instanceof Error ? error.message : "Не удалось сохранить привычку",
+        variant: "destructive",
+      });
     }
-    setSelectedTemplate(null);
   };
 
   const handleEditHabit = (habit: Habit) => {
@@ -588,58 +653,178 @@ export default function GoalsPage() {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDeleteHabit = () => {
+  const confirmDeleteHabit = async () => {
     if (habitToDelete) {
-      setHabits(habits.filter(h => h.id !== habitToDelete));
-      setHabitToDelete(null);
+      try {
+        await deleteHabit(habitToDelete);
+        toast({
+          title: "Привычка удалена",
+          description: "Привычка успешно удалена",
+        });
+        setHabitToDelete(null);
+      } catch (error) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось удалить привычку",
+          variant: "destructive",
+        });
+      }
     }
     setDeleteDialogOpen(false);
   };
 
-  const handleCreateTask = (taskData: Partial<Task>) => {
-    if (editingTask) {
-      setTasks(tasks.map(t => 
-        t.id === editingTask.id 
-          ? { ...t, ...taskData }
-          : t
-      ));
-      setEditingTask(null);
-    } else {
-      const newTask: Task = {
-        ...taskData,
-        id: String(Date.now()),
-        userId: 'user1',
-        priority: taskData.priority || 'medium',
-        isCompleted: false,
-        reminders: [],
-        createdAt: new Date().toISOString(),
-      } as Task;
-      setTasks([...tasks, newTask]);
+  const handleCreateGoal = async (goalData: {
+    category: string;
+    goalType: string;
+    title: string;
+    targetCount: number;
+    endDate?: string;
+    linkedToTasbih: boolean;
+  }) => {
+    try {
+      const goalPayload = {
+        category: goalData.category,
+        goalType: goalData.goalType,
+        title: goalData.title,
+        targetCount: goalData.targetCount,
+        currentProgress: 0,
+        status: 'active' as const,
+        startDate: new Date().toISOString(),
+        endDate: goalData.endDate ? new Date(goalData.endDate).toISOString() : undefined,
+        linkedCounterType: goalData.linkedToTasbih ? goalData.category : undefined,
+      };
+
+      if (editingGoal) {
+        await updateGoalMutation.mutateAsync({ id: editingGoal.id, data: goalPayload });
+        toast({
+          title: "Цель обновлена",
+          description: "Изменения сохранены",
+        });
+        setEditingGoal(null);
+      } else {
+        await createGoalMutation.mutateAsync(goalPayload);
+        toast({
+          title: "Цель создана",
+          description: "Новая цель добавлена",
+        });
+      }
+      setGoalSheetOpen(false);
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: error instanceof Error ? error.message : "Не удалось сохранить цель",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleToggleTask = (taskId: string) => {
-    setTasks(tasks.map(t => 
-      t.id === taskId 
-        ? { ...t, isCompleted: !t.isCompleted, completedAt: !t.isCompleted ? new Date().toISOString() : undefined }
-        : t
-    ));
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setGoalSheetOpen(true);
   };
 
-  const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    setTasks(tasks.map(t => {
-      if (t.id !== taskId || !t.subtasks) return t;
-      const updatedSubtasks = t.subtasks.map(s => 
-        s.id === subtaskId ? { ...s, isCompleted: !s.isCompleted } : s
-      );
-      const allCompleted = updatedSubtasks.every(s => s.isCompleted);
-      return {
-        ...t,
-        subtasks: updatedSubtasks,
-        isCompleted: allCompleted && updatedSubtasks.length > 0 ? true : t.isCompleted,
-        completedAt: allCompleted && updatedSubtasks.length > 0 && !t.isCompleted ? new Date().toISOString() : t.completedAt,
-      };
-    }));
+  const handleDeleteGoal = (goalId: string) => {
+    setGoalToDelete(goalId);
+    setGoalDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteGoal = async () => {
+    if (goalToDelete) {
+      try {
+        await deleteGoalMutation.mutateAsync(goalToDelete);
+        toast({
+          title: "Цель удалена",
+          description: "Цель успешно удалена",
+        });
+        setGoalToDelete(null);
+      } catch (error) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось удалить цель",
+          variant: "destructive",
+        });
+      }
+    }
+    setGoalDeleteDialogOpen(false);
+  };
+
+  const handleCreateTask = async (taskData: Partial<Task>) => {
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, taskData);
+        setEditingTask(null);
+        toast({
+          title: "Задача обновлена",
+          description: "Изменения сохранены",
+        });
+      } else {
+        await addTask(taskData);
+        toast({
+          title: "Задача создана",
+          description: "Новая задача добавлена",
+        });
+      }
+      setTaskSheetOpen(false);
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: error instanceof Error ? error.message : "Не удалось сохранить задачу",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleTaskAsync = async (taskId: string) => {
+    try {
+      await toggleTask(taskId);
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить задачу",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleHabitDayAsync = async (habitId: string, dateKey: string) => {
+    try {
+      await toggleHabitDay(habitId, dateKey);
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить привычку",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setTaskSheetOpen(true);
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await deleteTask(taskId);
+      toast({
+        title: "Задача удалена",
+        description: "Задача успешно удалена",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить задачу",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmDeleteTask = async () => {
+    if (taskToDelete) {
+      await handleDeleteTask(taskToDelete);
+      setTaskToDelete(null);
+    }
+    setTaskDeleteDialogOpen(false);
   };
 
   const handleEditTask = (task: Task) => {
@@ -652,72 +837,6 @@ export default function GoalsPage() {
     setTaskDeleteDialogOpen(true);
   };
 
-  const confirmDeleteTask = () => {
-    if (taskToDelete) {
-      setTasks(tasks.filter(t => t.id !== taskToDelete));
-      setTaskToDelete(null);
-    }
-    setTaskDeleteDialogOpen(false);
-  };
-
-  const handleToggleHabitDay = (habitId: string, dateKey: string) => {
-    setHabits(habits.map(h => {
-      if (h.id !== habitId) return h;
-      
-      const isCompleted = h.completedDates.includes(dateKey);
-      let newCompletedDates: string[];
-      
-      if (isCompleted) {
-        newCompletedDates = h.completedDates.filter(d => d !== dateKey);
-      } else {
-        newCompletedDates = [...h.completedDates, dateKey].sort();
-      }
-
-      let streak = 0;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      for (let i = 0; i < 365; i++) {
-        const checkDate = new Date(today);
-        checkDate.setDate(today.getDate() - i);
-        const checkKey = formatDateKey(checkDate);
-        
-        if (newCompletedDates.includes(checkKey)) {
-          streak++;
-        } else if (i > 0) {
-          break;
-        }
-      }
-
-      return {
-        ...h,
-        completedDates: newCompletedDates,
-        currentStreak: streak,
-        longestStreak: Math.max(h.longestStreak, streak),
-      };
-    }));
-  };
-
-  const filteredTasks = tasks.filter(t => {
-    const matchesSearch = !searchQuery || 
-      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.subtasks?.some(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    if (!matchesSearch) return false;
-    
-    if (taskFilter === 'all') {
-      return true;
-    }
-    if (taskFilter === 'today') {
-      return t.dueDate === formatDateKey(new Date());
-    }
-    if (taskFilter === 'tomorrow') {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return t.dueDate === formatDateKey(tomorrow);
-    }
-    return !t.dueDate;
-  });
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -820,7 +939,7 @@ export default function GoalsPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {filteredTasks.map(task => {
+                {filteredTasks.map((task: Task) => {
                   const subtasks = task.subtasks || [];
                   const completedSubtasks = subtasks.filter(s => s.isCompleted).length;
                   const hasSubtasks = subtasks.length > 0;
@@ -830,7 +949,7 @@ export default function GoalsPage() {
                     <Card key={task.id} className="p-3" data-testid={`task-card-${task.id}`}>
                       <div className="flex items-start gap-3">
                         <button
-                          onClick={() => handleToggleTask(task.id)}
+                          onClick={() => handleToggleTaskAsync(task.id)}
                           className={cn(
                             "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 mt-0.5",
                             task.isCompleted 
@@ -889,7 +1008,17 @@ export default function GoalsPage() {
                                       {subtasks.map(subtask => (
                                         <button
                                           key={subtask.id}
-                                          onClick={() => handleToggleSubtask(task.id, subtask.id)}
+                                          onClick={async () => {
+                                            try {
+                                              await toggleSubtask(task.id, subtask.id);
+                                            } catch (error) {
+                                              toast({
+                                                title: "Ошибка",
+                                                description: "Не удалось обновить подзадачу",
+                                                variant: "destructive",
+                                              });
+                                            }
+                                          }}
                                           className="flex items-center gap-2 w-full text-left hover:bg-muted/50 rounded p-1.5 transition-colors"
                                           data-testid={`button-toggle-subtask-${subtask.id}`}
                                         >
@@ -1014,11 +1143,11 @@ export default function GoalsPage() {
                   </div>
                 </ScrollArea>
                 {filteredHabits.map(habit => (
-                  <HabitCard
+                    <HabitCard
                     key={habit.id}
                     habit={habit}
                     weekDays={weekDays}
-                    onToggleDay={handleToggleHabitDay}
+                    onToggleDay={handleToggleHabitDayAsync}
                     onEdit={handleEditHabit}
                     onDelete={handleDeleteHabit}
                     isHighlighted={highlightedHabitId === habit.id}
@@ -1078,6 +1207,18 @@ export default function GoalsPage() {
             >
               <Target className="w-4 h-4" />
               Добавить привычку
+              <ChevronRight className="w-4 h-4 ml-auto" />
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => {
+                setFabMenuOpen(false);
+                setGoalSheetOpen(true);
+              }}
+              className="gap-2"
+              data-testid="menu-add-goal"
+            >
+              <Flag className="w-4 h-4" />
+              Добавить цель
               <ChevronRight className="w-4 h-4 ml-auto" />
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -1159,6 +1300,34 @@ export default function GoalsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteTask} className="bg-destructive text-destructive-foreground">
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <GoalCreationSheet
+        onSubmit={handleCreateGoal}
+        open={goalSheetOpen}
+        onOpenChange={(open) => {
+          setGoalSheetOpen(open);
+          if (!open) {
+            setEditingGoal(null);
+          }
+        }}
+      />
+
+      <AlertDialog open={goalDeleteDialogOpen} onOpenChange={setGoalDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить цель?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Весь прогресс по цели будет удален.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteGoal} className="bg-destructive text-destructive-foreground">
               Удалить
             </AlertDialogAction>
           </AlertDialogFooter>

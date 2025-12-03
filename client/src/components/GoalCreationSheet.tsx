@@ -32,10 +32,14 @@ interface GoalCreationSheetProps {
     linkedToTasbih: boolean;
   }) => void;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function GoalCreationSheet({ onSubmit, trigger }: GoalCreationSheetProps) {
-  const [open, setOpen] = useState(false);
+export default function GoalCreationSheet({ onSubmit, trigger, open: controlledOpen, onOpenChange }: GoalCreationSheetProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [category, setCategory] = useState<Category>('azkar');
   const [goalType, setGoalType] = useState<GoalType>('recite');
   const [title, setTitle] = useState('');
