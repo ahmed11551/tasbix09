@@ -27,6 +27,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-key-change-in-production}
       TEST_TOKEN: ${TEST_TOKEN:-test_token_123}
       BOT_REPLIKA_API_URL: ${BOT_REPLIKA_API_URL:-https://Bot.e-replika.ru/docs}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       PORT: 5000
     ports:
