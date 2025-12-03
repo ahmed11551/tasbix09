@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -20,7 +20,8 @@ import { Switch } from '@/components/ui/switch';
 import CategorySelector from './CategorySelector';
 import { Plus, Calendar } from 'lucide-react';
 import type { Category, GoalType } from '@/lib/types';
-import { goalCategoryLabels as categoryLabels } from '@/lib/constants';
+import type { HabitTemplate } from '@/lib/habitsCatalog';
+import { goalCategoryLabels as categoryLabels, habitCategoryToGoalCategory } from '@/lib/constants';
 
 interface GoalCreationSheetProps {
   onSubmit?: (goal: {
@@ -34,19 +35,71 @@ interface GoalCreationSheetProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  habitTemplate?: HabitTemplate | null;
+  editingGoal?: any;
 }
 
-export default function GoalCreationSheet({ onSubmit, trigger, open: controlledOpen, onOpenChange }: GoalCreationSheetProps) {
+export default function GoalCreationSheet({ onSubmit, trigger, open: controlledOpen, onOpenChange, habitTemplate, editingGoal }: GoalCreationSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
-  const [category, setCategory] = useState<Category>('azkar');
-  const [goalType, setGoalType] = useState<GoalType>('recite');
-  const [title, setTitle] = useState('');
-  const [targetCount, setTargetCount] = useState(100);
-  const [hasDeadline, setHasDeadline] = useState(false);
-  const [endDate, setEndDate] = useState('');
-  const [linkedToTasbih, setLinkedToTasbih] = useState(true);
+  
+  // Определяем начальные значения с учетом шаблона привычки или редактируемой цели
+  const getInitialCategory = (): Category => {
+    if (editingGoal) return editingGoal.category as Category;
+    if (habitTemplate) {
+      const mapped = habitCategoryToGoalCategory[habitTemplate.category];
+      return (mapped || 'azkar') as Category;
+    }
+    return 'azkar';
+  };
+
+  const getInitialLinkedToTasbih = (): boolean => {
+    if (editingGoal) return !!editingGoal.linkedCounterType;
+    if (habitTemplate) return habitTemplate.linkedToTasbih ?? false;
+    // Автоматически предлагать для категорий зикр/салават
+    return ['azkar', 'salawat', 'dua', 'kalimat'].includes(getInitialCategory());
+  };
+
+  const [category, setCategory] = useState<Category>(getInitialCategory());
+  const [goalType, setGoalType] = useState<GoalType>(editingGoal?.goalType || 'recite');
+  const [title, setTitle] = useState(editingGoal?.title || habitTemplate?.title || '');
+  const [targetCount, setTargetCount] = useState(editingGoal?.targetCount || habitTemplate?.targetCount || 100);
+  const [hasDeadline, setHasDeadline] = useState(!!editingGoal?.endDate);
+  const [endDate, setEndDate] = useState(editingGoal?.endDate ? editingGoal.endDate.split('T')[0] : '');
+  const [linkedToTasbih, setLinkedToTasbih] = useState(getInitialLinkedToTasbih());
+
+  // Обновляем значения при изменении habitTemplate или editingGoal
+  useEffect(() => {
+    if (habitTemplate && !editingGoal) {
+      const mappedCategory = habitCategoryToGoalCategory[habitTemplate.category];
+      setCategory((mappedCategory || 'azkar') as Category);
+      setTitle(habitTemplate.title);
+      setTargetCount(habitTemplate.targetCount || 100);
+      setLinkedToTasbih(habitTemplate.linkedToTasbih ?? ['azkar', 'salawat', 'dua', 'kalimat'].includes(mappedCategory || ''));
+    } else if (editingGoal) {
+      setCategory(editingGoal.category);
+      setGoalType(editingGoal.goalType);
+      setTitle(editingGoal.title);
+      setTargetCount(editingGoal.targetCount);
+      setHasDeadline(!!editingGoal.endDate);
+      setEndDate(editingGoal.endDate ? editingGoal.endDate.split('T')[0] : '');
+      setLinkedToTasbih(!!editingGoal.linkedCounterType);
+    }
+  }, [habitTemplate, editingGoal]);
+
+  // Автоматически предлагать связь с тасбихом при изменении категории на зикр/салават
+  useEffect(() => {
+    if (!editingGoal && !habitTemplate) {
+      // Если категория поддерживает тасбих, автоматически включаем связь
+      if (['azkar', 'salawat', 'dua', 'kalimat', 'names99'].includes(category)) {
+        setLinkedToTasbih(true);
+      } else {
+        // Для других категорий выключаем, если пользователь явно не установил
+        setLinkedToTasbih(false);
+      }
+    }
+  }, [category, editingGoal, habitTemplate]);
 
   const handleSubmit = () => {
     if (!title.trim() || targetCount <= 0) return;
@@ -61,10 +114,15 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
     });
     
     setOpen(false);
-    setTitle('');
-    setTargetCount(100);
-    setHasDeadline(false);
-    setEndDate('');
+    // Сброс формы только если не редактируем цель
+    if (!editingGoal) {
+      setTitle('');
+      setTargetCount(100);
+      setHasDeadline(false);
+      setEndDate('');
+      setCategory('azkar');
+      setLinkedToTasbih(true);
+    }
   };
 
   const presetTargets = [33, 99, 100, 500, 1000, 5000, 10000];
@@ -82,7 +140,7 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
       
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl">
         <SheetHeader className="pb-4">
-          <SheetTitle>Новая цель</SheetTitle>
+          <SheetTitle>{editingGoal ? 'Редактировать цель' : 'Новая цель'}</SheetTitle>
         </SheetHeader>
         
         <div className="space-y-6 overflow-y-auto pb-20">
@@ -203,7 +261,7 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
             disabled={!title.trim() || targetCount <= 0}
             data-testid="button-submit-goal"
           >
-            Создать цель
+            {editingGoal ? 'Сохранить изменения' : 'Создать цель'}
           </Button>
         </div>
       </SheetContent>

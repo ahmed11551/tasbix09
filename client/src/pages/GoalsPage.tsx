@@ -532,6 +532,7 @@ export default function GoalsPage() {
   const habitRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   
   const [selectedTemplate, setSelectedTemplate] = useState<HabitTemplate | null>(null);
+  const [selectedHabitForGoal, setSelectedHabitForGoal] = useState<HabitTemplate | null>(null);
   const [habitSheetOpen, setHabitSheetOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -614,6 +615,11 @@ export default function GoalsPage() {
   const handleSelectFromCatalog = (template: HabitTemplate) => {
     setSelectedTemplate(template);
     setHabitSheetOpen(true);
+  };
+
+  const handleSelectHabitForGoal = (template: HabitTemplate) => {
+    setSelectedHabitForGoal(template);
+    setGoalSheetOpen(true);
   };
 
   const handleCreateHabit = async (habitData: Partial<Habit>) => {
@@ -1227,6 +1233,7 @@ export default function GoalsPage() {
 
       <HabitCatalogSheet
         onSelectHabit={handleSelectFromCatalog}
+        onSelectHabitForGoal={handleSelectHabitForGoal}
         open={habitCatalogOpen}
         onOpenChange={setHabitCatalogOpen}
       />
@@ -1308,11 +1315,14 @@ export default function GoalsPage() {
 
       <GoalCreationSheet
         onSubmit={handleCreateGoal}
+        habitTemplate={selectedHabitForGoal}
+        editingGoal={editingGoal}
         open={goalSheetOpen}
         onOpenChange={(open) => {
           setGoalSheetOpen(open);
           if (!open) {
             setEditingGoal(null);
+            setSelectedHabitForGoal(null);
           }
         }}
       />

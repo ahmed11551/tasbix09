@@ -18,6 +18,7 @@ interface TasbihCounterProps {
   showTranslation?: boolean;
   showAudioPlayer?: boolean;
   transcriptionType?: 'latin' | 'cyrillic';
+  linkedGoalTitle?: string;
 }
 
 export default function TasbihCounter({
@@ -33,6 +34,7 @@ export default function TasbihCounter({
   showTranslation = true,
   showAudioPlayer = true,
   transcriptionType = 'cyrillic',
+  linkedGoalTitle,
 }: TasbihCounterProps) {
   const computedRounds = initialRounds ?? Math.floor(initialCount / 100);
   const [count, setCount] = useState(initialCount);
@@ -240,6 +242,17 @@ export default function TasbihCounter({
             <p className="text-sm text-muted-foreground">
               {item.translation}
             </p>
+          )}
+
+          {linkedGoalTitle && (
+            <div className="mt-3 pt-3 border-t border-border/50">
+              <div className="flex items-center gap-2 text-xs text-primary/90 bg-primary/5 rounded-lg px-2.5 py-1.5">
+                <Target className="w-3.5 h-3.5" />
+                <span className="font-medium">
+                  Это засчитается в вашу цель "{linkedGoalTitle}"
+                </span>
+              </div>
+            </div>
           )}
         </Card>
       )}

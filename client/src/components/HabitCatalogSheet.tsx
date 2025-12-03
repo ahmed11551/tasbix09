@@ -19,6 +19,8 @@ import {
   Plus,
   X,
   CircleDot,
+  Target,
+  Flag,
 } from 'lucide-react';
 import {
   habitCategories,
@@ -33,18 +35,20 @@ import { getIconByName } from '@/lib/iconUtils';
 
 interface HabitCatalogSheetProps {
   onSelectHabit: (habit: HabitTemplate) => void;
+  onSelectHabitForGoal?: (habit: HabitTemplate) => void;
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-export default function HabitCatalogSheet({ onSelectHabit, trigger, open: controlledOpen, onOpenChange }: HabitCatalogSheetProps) {
+export default function HabitCatalogSheet({ onSelectHabit, onSelectHabitForGoal, trigger, open: controlledOpen, onOpenChange }: HabitCatalogSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<HabitCategory | null>(null);
   const [selectedTag, setSelectedTag] = useState<FilterTag | null>(null);
+  const [selectedHabitForAction, setSelectedHabitForAction] = useState<HabitTemplate | null>(null);
 
   const filteredHabits = useMemo(() => {
     let habits = habitsCatalog;
@@ -68,12 +72,26 @@ export default function HabitCatalogSheet({ onSelectHabit, trigger, open: contro
     return habits;
   }, [searchQuery, selectedCategory, selectedTag]);
 
-  const handleSelectHabit = (habit: HabitTemplate) => {
-    onSelectHabit(habit);
-    setOpen(false);
-    setSearchQuery('');
-    setSelectedCategory(null);
-    setSelectedTag(null);
+  const handleCreateHabit = () => {
+    if (selectedHabitForAction) {
+      onSelectHabit(selectedHabitForAction);
+      setSelectedHabitForAction(null);
+      setOpen(false);
+      setSearchQuery('');
+      setSelectedCategory(null);
+      setSelectedTag(null);
+    }
+  };
+
+  const handleCreateGoal = () => {
+    if (selectedHabitForAction && onSelectHabitForGoal) {
+      onSelectHabitForGoal(selectedHabitForAction);
+      setSelectedHabitForAction(null);
+      setOpen(false);
+      setSearchQuery('');
+      setSelectedCategory(null);
+      setSelectedTag(null);
+    }
   };
 
   const clearFilters = () => {
@@ -211,8 +229,20 @@ export default function HabitCatalogSheet({ onSelectHabit, trigger, open: contro
                     return (
                       <Card
                         key={habit.id}
-                        className="p-4 cursor-pointer hover-elevate active-elevate-2 transition-all"
-                        onClick={() => handleSelectHabit(habit)}
+                        className="p-4 hover-elevate transition-all"
+                        onClick={() => {
+                          // Если есть опция создания цели, показываем диалог при клике на карточку
+                          if (onSelectHabitForGoal) {
+                            setSelectedHabitForAction(habit);
+                          } else {
+                            // Иначе сразу создаем привычку
+                            onSelectHabit(habit);
+                            setOpen(false);
+                            setSearchQuery('');
+                            setSelectedCategory(null);
+                            setSelectedTag(null);
+                          }
+                        }}
                         data-testid={`habit-card-${habit.id}`}
                       >
                         <div className="flex items-start gap-3">
@@ -228,7 +258,6 @@ export default function HabitCatalogSheet({ onSelectHabit, trigger, open: contro
                               <h3 className="font-medium text-sm leading-tight line-clamp-2">
                                 {habit.title}
                               </h3>
-                              <Plus className="w-5 h-5 text-primary shrink-0" />
                             </div>
                             
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
@@ -249,6 +278,47 @@ export default function HabitCatalogSheet({ onSelectHabit, trigger, open: contro
                                 </Badge>
                               )}
                             </div>
+
+                            <div className="flex items-center gap-2 mt-3">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="flex-1 h-8 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSelectHabit(habit);
+                                  setOpen(false);
+                                  setSearchQuery('');
+                                  setSelectedCategory(null);
+                                  setSelectedTag(null);
+                                }}
+                                data-testid={`button-create-habit-${habit.id}`}
+                              >
+                                <Plus className="w-3 h-3 mr-1" />
+                                Привычка
+                              </Button>
+                              {onSelectHabitForGoal && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 h-8 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onSelectHabitForGoal) {
+                                      onSelectHabitForGoal(habit);
+                                      setOpen(false);
+                                      setSearchQuery('');
+                                      setSelectedCategory(null);
+                                      setSelectedTag(null);
+                                    }
+                                  }}
+                                  data-testid={`button-create-goal-${habit.id}`}
+                                >
+                                  <Target className="w-3 h-3 mr-1" />
+                                  Цель
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -265,6 +335,43 @@ export default function HabitCatalogSheet({ onSelectHabit, trigger, open: contro
             </div>
           </div>
         </ScrollArea>
+
+        {/* Dialog for choosing between habit and goal when clicking on card */}
+        {selectedHabitForAction && (
+          <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 p-4" onClick={() => setSelectedHabitForAction(null)}>
+            <Card className="w-full max-w-md p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-medium text-lg">Выберите действие</h3>
+              <p className="text-sm text-muted-foreground">
+                Что вы хотите создать на основе "{selectedHabitForAction.title}"?
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={handleCreateHabit}
+                  className="w-full justify-start gap-2"
+                  variant="outline"
+                >
+                  <Plus className="w-4 h-4" />
+                  Создать привычку
+                </Button>
+                <Button
+                  onClick={handleCreateGoal}
+                  className="w-full justify-start gap-2"
+                >
+                  <Target className="w-4 h-4" />
+                  Создать цель
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedHabitForAction(null)}
+                className="w-full"
+              >
+                Отмена
+              </Button>
+            </Card>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -31,3 +31,14 @@ export const goalCategoryLabels: Record<string, string> = {
   kalimat: 'Калимы',
 };
 
+// Маппинг категорий привычек в категории целей
+export const habitCategoryToGoalCategory: Record<string, string> = {
+  namaz: 'general', // Намаз -> Общее (или можно создать отдельную категорию для намазов)
+  quran: 'surah', // Коран -> Сура
+  dhikr: 'azkar', // Зикр -> Азкары
+  sadaqa: 'general', // Садака -> Общее
+  knowledge: 'general', // Знания -> Общее
+  fasting: 'general', // Пост -> Общее
+  etiquette: 'general', // Этикет -> Общее
+};
+

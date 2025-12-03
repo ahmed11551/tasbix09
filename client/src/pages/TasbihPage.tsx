@@ -449,6 +449,7 @@ export default function TasbihPage() {
             showTranslation={showTranslation}
             showAudioPlayer={showAudioPlayer}
             transcriptionType={transcriptionType}
+            linkedGoalTitle={linkedGoal?.title}
           />
         </div>
 
