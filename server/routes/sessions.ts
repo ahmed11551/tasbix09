@@ -8,7 +8,10 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const sessions = await storage.getSessions(userId);
     res.json({ sessions });
   } catch (error) {
@@ -19,7 +22,10 @@ router.get("/", async (req, res, next) => {
 // GET /api/sessions/unfinished - получить незавершенные сессии
 router.get("/unfinished", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const { prisma } = await import("../db-prisma");
     
     // Получить незавершенные сессии (endedAt === null)
@@ -79,7 +85,10 @@ router.get("/unfinished", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const session = await storage.getSession(req.params.id, userId);
     if (!session) {
       return res.status(404).json({ error: "Session not found" });
@@ -92,7 +101,10 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body;
     const session = await storage.createSession(userId, parsed);
     res.status(201).json({ session });
@@ -106,7 +118,10 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body;
     const session = await storage.updateSession(req.params.id, userId, parsed);
     res.json({ session });

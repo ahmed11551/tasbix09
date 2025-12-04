@@ -8,7 +8,10 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const tasks = await storage.getTasks(userId);
     res.json({ tasks });
   } catch (error) {
@@ -18,7 +21,10 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const task = await storage.getTask(req.params.id, userId);
     if (!task) {
       return res.status(404).json({ error: "Task not found" });
@@ -31,7 +37,10 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body; // Validate in Prisma
     const task = await storage.createTask(userId, parsed);
     res.status(201).json({ task });
@@ -45,7 +54,10 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body; // Validate in Prisma
     const task = await storage.updateTask(req.params.id, userId, parsed);
     res.json({ task });
@@ -62,7 +74,10 @@ router.patch("/:id", async (req, res, next) => {
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     await storage.deleteTask(req.params.id, userId);
     res.json({ message: "Task deleted successfully" });
   } catch (error) {

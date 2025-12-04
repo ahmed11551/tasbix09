@@ -8,7 +8,10 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const habits = await storage.getHabits(userId);
     res.json({ habits });
   } catch (error) {
@@ -18,7 +21,10 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const habit = await storage.getHabit(req.params.id, userId);
     if (!habit) {
       return res.status(404).json({ error: "Habit not found" });
@@ -31,7 +37,10 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body;
     const habit = await storage.createHabit(userId, parsed);
     res.status(201).json({ habit });
@@ -45,7 +54,10 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body;
     const habit = await storage.updateHabit(req.params.id, userId, parsed);
     res.json({ habit });
@@ -62,7 +74,10 @@ router.patch("/:id", async (req, res, next) => {
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     await storage.deleteHabit(req.params.id, userId);
     res.json({ message: "Habit deleted successfully" });
   } catch (error) {

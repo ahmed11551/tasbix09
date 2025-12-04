@@ -985,8 +985,10 @@ export default function GoalsPage() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-4 space-y-4">
-        <AIInsight habits={habits} />
+      <main className="max-w-md mx-auto px-4 py-4 space-y-4 overflow-y-auto pb-24">
+        <ScrollArea className="h-[calc(100vh-3.5rem)]">
+          <div className="space-y-4">
+            <AIInsight habits={habits} />
 
         {/* Быстрый доступ к калькулятору Каза */}
         <Card className="p-3 bg-primary/5 border-primary/20">
@@ -1354,6 +1356,8 @@ export default function GoalsPage() {
             )}
           </CollapsibleContent>
         </Collapsible>
+          </div>
+        </ScrollArea>
       </main>
 
       <div className="fixed bottom-20 left-4 z-50">

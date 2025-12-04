@@ -41,7 +41,10 @@ async function checkGoalLimit(userId: string): Promise<{ allowed: boolean; curre
 
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const goals = await storage.getGoals(userId);
     res.json({ goals });
   } catch (error) {
@@ -51,7 +54,10 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const goal = await storage.getGoal(req.params.id, userId);
     if (!goal) {
       return res.status(404).json({ error: "Goal not found" });
@@ -64,7 +70,10 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     
     // Проверка лимита активных целей
     const limitCheck = await checkGoalLimit(userId);
@@ -92,7 +101,10 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const parsed = req.body;
     
     // Если статус меняется на 'active', проверяем лимит
@@ -128,7 +140,10 @@ router.patch("/:id", async (req, res, next) => {
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     await storage.deleteGoal(req.params.id, userId);
     res.json({ message: "Goal deleted successfully" });
   } catch (error) {

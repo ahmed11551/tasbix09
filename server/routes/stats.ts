@@ -7,7 +7,10 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     
     // Get all data
     const [habits, tasks, goals, logs] = await Promise.all([

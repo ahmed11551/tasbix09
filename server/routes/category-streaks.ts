@@ -180,7 +180,10 @@ async function updateCategoryStreaks(userId: string) {
 // GET /api/category-streaks - получить все категорийные streaks
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     
     // Обновить streaks перед возвратом
     await updateCategoryStreaks(userId);
@@ -195,7 +198,10 @@ router.get("/", async (req, res, next) => {
 // POST /api/category-streaks/update - обновить streaks (можно вызвать вручную)
 router.post("/update", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const updated = await updateCategoryStreaks(userId);
     res.json({ success: true, streaks: updated });
   } catch (error) {
@@ -206,7 +212,10 @@ router.post("/update", async (req, res, next) => {
 // GET /api/category-streaks/:category - получить streak конкретной категории
 router.get("/:category", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const category = req.params.category;
     
     if (!['prayer', 'quran', 'dhikr'].includes(category)) {

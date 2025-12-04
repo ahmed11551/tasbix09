@@ -273,7 +273,10 @@ async function checkAndAwardBadges(userId: string) {
 // GET /api/badges - получить все бейджи пользователя
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const badges = await storage.getBadges(userId);
     
     // Проверить и присвоить новые бейджи
@@ -294,7 +297,10 @@ router.get("/", async (req, res, next) => {
 // GET /api/badges/check - проверить и присвоить бейджи (без обновления списка)
 router.post("/check", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const newBadges = await checkAndAwardBadges(userId);
     res.json({ newBadges });
   } catch (error) {
@@ -305,7 +311,10 @@ router.post("/check", async (req, res, next) => {
 // GET /api/badges/:id - получить конкретный бейдж
 router.get("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req)!;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const badge = await storage.getBadge(req.params.id, userId);
     if (!badge) {
       return res.status(404).json({ error: "Badge not found" });
