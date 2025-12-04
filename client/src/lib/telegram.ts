@@ -22,8 +22,15 @@ export function initTelegramWebApp() {
   // Расширить на весь экран
   tg.expand();
   
-  // Включить закрытие через кнопку
-  tg.enableClosingConfirmation();
+  // Включить закрытие через кнопку (не поддерживается в версии 6.0+)
+  try {
+    if (tg.enableClosingConfirmation && typeof tg.enableClosingConfirmation === 'function') {
+      tg.enableClosingConfirmation();
+    }
+  } catch (error) {
+    // Игнорируем ошибку, если метод не поддерживается
+    console.debug('enableClosingConfirmation not supported in this version');
+  }
   
   // Настроить тему
   const theme = tg.colorScheme || 'light';

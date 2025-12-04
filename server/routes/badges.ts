@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { prisma } from "../db-prisma";
 import { requireAuth, getUserId } from "../middleware/auth";
+import type { Prisma } from "@prisma/client";
 
 const router = Router();
 router.use(requireAuth);
@@ -61,7 +62,7 @@ async function checkAndAwardBadges(userId: string) {
 
     // Проверка бейджей на streaks
     if (maxStreak >= 7 && !existingBadgeTypes.has('streak_7')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'streak_7',
         title: BADGE_DEFINITIONS.streak_7.title,
         description: BADGE_DEFINITIONS.streak_7.description,
@@ -71,12 +72,13 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: maxStreak,
         target: BADGE_DEFINITIONS.streak_7.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     if (maxStreak >= 30 && !existingBadgeTypes.has('streak_30')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'streak_30',
         title: BADGE_DEFINITIONS.streak_30.title,
         description: BADGE_DEFINITIONS.streak_30.description,
@@ -86,12 +88,13 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: maxStreak,
         target: BADGE_DEFINITIONS.streak_30.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     if (maxStreak >= 100 && !existingBadgeTypes.has('streak_100')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'streak_100',
         title: BADGE_DEFINITIONS.streak_100.title,
         description: BADGE_DEFINITIONS.streak_100.description,
@@ -101,13 +104,14 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: maxStreak,
         target: BADGE_DEFINITIONS.streak_100.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     // Проверка бейджей на цели
     if (completedGoals >= 1 && !existingBadgeTypes.has('first_goal')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'first_goal',
         title: BADGE_DEFINITIONS.first_goal.title,
         description: BADGE_DEFINITIONS.first_goal.description,
@@ -117,12 +121,13 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: completedGoals,
         target: BADGE_DEFINITIONS.first_goal.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     if (completedGoals >= 10 && !existingBadgeTypes.has('goal_master')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'goal_master',
         title: BADGE_DEFINITIONS.goal_master.title,
         description: BADGE_DEFINITIONS.goal_master.description,
@@ -132,12 +137,13 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: completedGoals,
         target: BADGE_DEFINITIONS.goal_master.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     if (completedGoals >= 50 && !existingBadgeTypes.has('goal_champion')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'goal_champion',
         title: BADGE_DEFINITIONS.goal_champion.title,
         description: BADGE_DEFINITIONS.goal_champion.description,
@@ -147,13 +153,14 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: completedGoals,
         target: BADGE_DEFINITIONS.goal_champion.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     // Проверка бейджей на зикры
     if (totalDhikrCount >= 1000 && !existingBadgeTypes.has('dhikr_1000')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'dhikr_1000',
         title: BADGE_DEFINITIONS.dhikr_1000.title,
         description: BADGE_DEFINITIONS.dhikr_1000.description,
@@ -163,12 +170,13 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: totalDhikrCount,
         target: BADGE_DEFINITIONS.dhikr_1000.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     if (totalDhikrCount >= 10000 && !existingBadgeTypes.has('dhikr_10000')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'dhikr_10000',
         title: BADGE_DEFINITIONS.dhikr_10000.title,
         description: BADGE_DEFINITIONS.dhikr_10000.description,
@@ -178,12 +186,13 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: totalDhikrCount,
         target: BADGE_DEFINITIONS.dhikr_10000.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
     if (totalDhikrCount >= 100000 && !existingBadgeTypes.has('dhikr_100000')) {
-      const badge = await storage.createBadge(userId, {
+      const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
         type: 'dhikr_100000',
         title: BADGE_DEFINITIONS.dhikr_100000.title,
         description: BADGE_DEFINITIONS.dhikr_100000.description,
@@ -193,7 +202,8 @@ async function checkAndAwardBadges(userId: string) {
         achievedAt: new Date(),
         progress: totalDhikrCount,
         target: BADGE_DEFINITIONS.dhikr_100000.target,
-      });
+      };
+      const badge = await storage.createBadge(userId, badgeData);
       newBadges.push(badge);
     }
 
@@ -209,7 +219,7 @@ async function checkAndAwardBadges(userId: string) {
                            qazaDebt.maghribProgress + qazaDebt.ishaProgress;
       
       if (totalProgress >= totalDebt && totalDebt > 0) {
-        const badge = await storage.createBadge(userId, {
+        const badgeData: Omit<Prisma.BadgeCreateInput, 'user'> = {
           type: 'qaza_completed',
           title: BADGE_DEFINITIONS.qaza_completed.title,
           description: BADGE_DEFINITIONS.qaza_completed.description,
@@ -219,7 +229,8 @@ async function checkAndAwardBadges(userId: string) {
           achievedAt: new Date(),
           progress: 1,
           target: BADGE_DEFINITIONS.qaza_completed.target,
-        });
+        };
+        const badge = await storage.createBadge(userId, badgeData);
         newBadges.push(badge);
       }
     }

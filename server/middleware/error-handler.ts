@@ -37,13 +37,36 @@ export function errorHandler(
         return res.status(404).json({
           error: "Record not found",
         });
+      case "P1001":
+      case "P1002":
+      case "P1003":
+      case "P1008":
+      case "P1017":
+        // Database connection errors
+        console.error("Database connection error:", err);
+        return res.status(503).json({
+          error: "Database connection failed",
+          message: "Не удалось подключиться к базе данных. Проверьте DATABASE_URL.",
+          code: err.code,
+        });
       default:
         console.error("Prisma error:", err);
         return res.status(500).json({
           error: "Database error",
           code: err.code,
+          message: process.env.NODE_ENV === 'development' ? err.message : undefined,
         });
     }
+  }
+
+  // Prisma initialization errors
+  if (err instanceof Prisma.PrismaClientInitializationError) {
+    console.error("Prisma initialization error:", err);
+    return res.status(503).json({
+      error: "Database initialization failed",
+      message: "Не удалось инициализировать подключение к базе данных. Проверьте DATABASE_URL.",
+      code: err.errorCode,
+    });
   }
 
   // Custom API errors

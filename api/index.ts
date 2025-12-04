@@ -64,29 +64,48 @@ function getApp(): express.Express {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const expressApp = getApp();
-  
-  // Ждем регистрацию роутов если еще не завершена
-  if (!routesRegistered) {
-    await new Promise<void>((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (routesRegistered) {
+  try {
+    const expressApp = getApp();
+    
+    // Ждем регистрацию роутов если еще не завершена
+    if (!routesRegistered) {
+      await new Promise<void>((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (routesRegistered) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 50);
+        
+        // Timeout после 5 секунд
+        setTimeout(() => {
           clearInterval(checkInterval);
           resolve();
+        }, 5000);
+      });
+    }
+    
+    return new Promise<void>((resolve) => {
+      expressApp(req as any, res as any, (err?: any) => {
+        if (err) {
+          console.error('Express error:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ 
+              error: 'Internal server error',
+              message: process.env.NODE_ENV === 'development' ? err.message : undefined
+            });
+          }
         }
-      }, 50);
-      
-      // Timeout после 5 секунд
-      setTimeout(() => {
-        clearInterval(checkInterval);
         resolve();
-      }, 5000);
+      });
     });
+  } catch (error: any) {
+    console.error('Handler error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Произошла ошибка при обработке запроса'
+      });
+    }
   }
-  
-  return new Promise<void>((resolve) => {
-    expressApp(req as any, res as any, () => {
-      resolve();
-    });
-  });
 }

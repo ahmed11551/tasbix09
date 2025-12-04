@@ -99,12 +99,10 @@ export default function TasbihPage() {
   );
   
   // Получить streak для текущего типа активности (dhikr по умолчанию)
-  const getCurrentStreak = () => {
-    const dhikrStreak = categoryStreaks.find(s => s.category === 'dhikr');
+  const currentStreak = React.useMemo(() => {
+    const dhikrStreak = categoryStreaks?.find((s: any) => s.category === 'dhikr');
     return dhikrStreak?.currentStreak || 0;
-  };
-  
-  const currentStreak = getCurrentStreak();
+  }, [categoryStreaks]);
   
   const dailyAzkar = dailyAzkarData || {
     userId: '',
