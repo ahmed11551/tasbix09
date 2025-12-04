@@ -164,7 +164,3 @@ docker-compose logs -f app
 # Пересобрать после изменений
 docker-compose up -d --build
 ```
-
-## Лицензия
-
-MIT
