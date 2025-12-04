@@ -53,6 +53,14 @@ npm run db:push
 npm run dev
 ```
 
+Приложение будет доступно на http://localhost:5000
+
+**Для production запуска:**
+```bash
+npm run build
+NODE_ENV=production npm start
+```
+
 ## Переменные окружения
 
 ### Для локальной разработки / Docker
