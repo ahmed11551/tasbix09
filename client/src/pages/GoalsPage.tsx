@@ -1409,18 +1409,6 @@ export default function GoalsPage() {
               Добавить привычку
               <ChevronRight className="w-4 h-4 ml-auto" />
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => {
-                setFabMenuOpen(false);
-                setGoalSheetOpen(true);
-              }}
-              className="gap-2"
-              data-testid="menu-add-goal"
-            >
-              <Flag className="w-4 h-4" />
-              Добавить цель
-              <ChevronRight className="w-4 h-4 ml-auto" />
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
