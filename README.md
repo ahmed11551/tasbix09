@@ -80,13 +80,18 @@ NODE_ENV=production
 
 ### Для Vercel
 
-Добавьте переменные в **Vercel Dashboard → Settings → Environment Variables**:
+**Быстрая настройка:**
+```bash
+./setup-vercel.sh
+```
 
+**Или вручную:**
 1. Перейдите на https://vercel.com
-2. Выберите проект
-3. Settings → Environment Variables
-4. Добавьте все переменные из списка выше
-5. После добавления выполните Redeploy проекта
+2. Add New Project → Импортируйте репозиторий
+3. Settings → Environment Variables → Добавьте переменные (см. `vercel-env-template.txt`)
+4. После добавления выполните Redeploy проекта
+
+**Подробная инструкция:** См. [VERCEL_SETUP.md](./VERCEL_SETUP.md)
 
 ### Настройка базы данных
 
