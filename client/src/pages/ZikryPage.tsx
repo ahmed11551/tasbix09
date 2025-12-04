@@ -107,8 +107,10 @@ function ZikrItemCard({ item, index, onOpen }: ZikrItemCardProps) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-sm text-muted-foreground w-6">{index + 1}.</span>
-          <span className="font-medium truncate">{item.titleRu}</span>
+          <span className="text-sm text-muted-foreground w-6 shrink-0">{index + 1}.</span>
+          <TextWithTooltip className="font-medium">
+            {item.titleRu}
+          </TextWithTooltip>
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
       </div>
@@ -426,13 +428,11 @@ export default function ZikryPage() {
                   </TabsContent>
 
                   <TabsContent value="favorites">
-                    <div className="text-center py-12">
-                      <Heart className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-                      <p className="text-muted-foreground">Нет избранных зикров</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Нажмите на сердечко, чтобы добавить
-                      </p>
-                    </div>
+                    <EmptyState
+                      icon={Heart}
+                      title="Нет избранных зикров"
+                      description="Нажмите на сердечко у зикра, чтобы добавить его в избранное"
+                    />
                   </TabsContent>
                 </Tabs>
               </>

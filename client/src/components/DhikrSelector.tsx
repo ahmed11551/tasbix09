@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EmptyState } from '@/components/ui/empty-state';
 import CategorySelector from './CategorySelector';
 import DhikrItemCard from './DhikrItemCard';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, BookOpen } from 'lucide-react';
 import type { DhikrItem, Category } from '@/lib/types';
 import { categoryLabels } from '@/lib/constants';
 import { 
@@ -71,7 +72,9 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
         {trigger || (
           <Button variant="outline" className="w-full justify-between gap-2" data-testid="button-select-dhikr">
             {selectedItem ? (
-              <span className="truncate">{selectedItem.titleRu}</span>
+              <TextWithTooltip className="flex-1 text-left">
+                {selectedItem.titleRu}
+              </TextWithTooltip>
             ) : (
               <span className="text-muted-foreground">Выберите зикр...</span>
             )}
@@ -128,9 +131,11 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
                     />
                   ))
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    Ничего не найдено в категории "{categoryLabels[category]}"
-                  </p>
+                  <EmptyState
+                    icon={BookOpen}
+                    title="Ничего не найдено"
+                    description={`В категории "${categoryLabels[category]}" нет доступных зикров`}
+                  />
                 )}
               </div>
             </ScrollArea>
@@ -150,9 +155,11 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
                     />
                   ))
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    Нет недавних зикров
-                  </p>
+                  <EmptyState
+                    icon={BookOpen}
+                    title="Нет недавних зикров"
+                    description="Зикры, которые вы используете чаще всего, появятся здесь"
+                  />
                 )}
               </div>
             </ScrollArea>
@@ -172,9 +179,11 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
                     />
                   ))
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    Нет зикров из активных целей
-                  </p>
+                  <EmptyState
+                    icon={BookOpen}
+                    title="Нет зикров из целей"
+                    description="Создайте цели с зикрами, и они появятся здесь для быстрого доступа"
+                  />
                 )}
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Зикры, связанные с вашими активными целями

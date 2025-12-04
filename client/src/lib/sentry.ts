@@ -1,67 +1,93 @@
 // Sentry error tracking integration
-// Опциональная интеграция - работает только если SENTRY_DSN установлен
+// Опциональная интеграция - работает только если SENTRY_DSN установлен и @sentry/react установлен
 
 let sentryInitialized = false;
 
-export function initSentry() {
-  // Проверяем наличие DSN
-  const dsn = import.meta.env.VITE_SENTRY_DSN || process.env.VITE_SENTRY_DSN;
-  
-  if (!dsn || sentryInitialized) {
-    return;
+// Функция загрузки Sentry через динамический импорт
+// Модуль помечен как external, поэтому загружается только во время выполнения
+async function loadSentry() {
+  if (typeof window === 'undefined') {
+    return null;
   }
 
   try {
-    // Динамический импорт Sentry (чтобы не добавлять в bundle если не используется)
-    import('@sentry/react').then((Sentry) => {
+    // Динамический импорт - модуль будет загружен во время выполнения, если доступен
+    const Sentry = await import('@sentry/react');
+    return Sentry;
+  } catch (error) {
+    // Модуль не установлен - возвращаем null
+    return null;
+  }
+}
+
+export function initSentry() {
+  if (sentryInitialized || typeof window === 'undefined') {
+    return;
+  }
+
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (!dsn) {
+    return;
+  }
+
+  // Загружаем Sentry асинхронно
+  loadSentry().then((Sentry) => {
+    if (!Sentry || !Sentry.init || typeof Sentry.init !== 'function') {
+      return;
+    }
+
+    try {
       Sentry.init({
         dsn,
-        environment: import.meta.env.MODE || process.env.NODE_ENV || 'production',
+        environment: import.meta.env.MODE || 'production',
         integrations: [
-          new Sentry.BrowserTracing(),
-          new Sentry.Replay({
+          Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration({
             maskAllText: true,
             blockAllMedia: true,
           }),
         ],
-        tracesSampleRate: 0.1, // 10% транзакций
-        replaysSessionSampleRate: 0.01, // 1% сессий
-        replaysOnErrorSampleRate: 1.0, // 100% ошибок
+        tracesSampleRate: 0.1,
+        replaysSessionSampleRate: 0.01,
+        replaysOnErrorSampleRate: 1.0,
       });
       sentryInitialized = true;
-    }).catch(() => {
-      // Sentry не установлен или ошибка импорта - игнорируем
-    });
-  } catch (error) {
-    // Игнорируем ошибки инициализации
-  }
+    } catch {
+      // Игнорируем ошибки инициализации
+    }
+  }).catch(() => {
+    // Sentry не установлен - игнорируем
+  });
 }
 
 export function captureException(error: Error, context?: Record<string, unknown>) {
-  if (!sentryInitialized) return;
-  
-  try {
-    import('@sentry/react').then((Sentry) => {
+  if (!sentryInitialized || typeof window === 'undefined') {
+    return;
+  }
+
+  loadSentry().then((Sentry) => {
+    if (Sentry && Sentry.captureException && typeof Sentry.captureException === 'function') {
       Sentry.captureException(error, {
         contexts: {
           custom: context,
         },
       });
-    });
-  } catch {
-    // Игнорируем ошибки
-  }
+    }
+  }).catch(() => {
+    // Игнорируем
+  });
 }
 
 export function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {
-  if (!sentryInitialized) return;
-  
-  try {
-    import('@sentry/react').then((Sentry) => {
-      Sentry.captureMessage(message, level);
-    });
-  } catch {
-    // Игнорируем ошибки
+  if (!sentryInitialized || typeof window === 'undefined') {
+    return;
   }
-}
 
+  loadSentry().then((Sentry) => {
+    if (Sentry && Sentry.captureMessage && typeof Sentry.captureMessage === 'function') {
+      Sentry.captureMessage(message, level);
+    }
+  }).catch(() => {
+    // Игнорируем
+  });
+}

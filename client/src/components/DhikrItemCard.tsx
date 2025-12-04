@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { TextWithTooltip } from '@/components/ui/text-with-tooltip';
 import { cn } from '@/lib/utils';
 import { Play, Check, ChevronRight } from 'lucide-react';
 import type { DhikrItem, TranscriptionType } from '@/lib/types';
@@ -42,9 +43,9 @@ export default function DhikrItemCard({
             <p className="font-arabic text-lg truncate" dir="rtl" lang="ar">
               {item.titleAr}
             </p>
-            <p className="text-sm text-muted-foreground truncate">
+            <TextWithTooltip as="p" className="text-sm text-muted-foreground">
               {item.titleRu}
-            </p>
+            </TextWithTooltip>
           </div>
           
           <div className="flex items-center gap-2">

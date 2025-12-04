@@ -7,6 +7,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -43,6 +44,7 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Определяем начальные значения с учетом шаблона привычки или редактируемой цели
   const getInitialCategory = (): Category => {
@@ -61,67 +63,105 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
     return ['azkar', 'salawat', 'dua', 'kalimat'].includes(getInitialCategory());
   };
 
-  const [category, setCategory] = useState<Category>(getInitialCategory());
-  const [goalType, setGoalType] = useState<GoalType>(editingGoal?.goalType || 'recite');
-  const [title, setTitle] = useState(editingGoal?.title || habitTemplate?.title || '');
-  const [targetCount, setTargetCount] = useState(editingGoal?.targetCount || habitTemplate?.targetCount || 100);
-  const [hasDeadline, setHasDeadline] = useState(!!editingGoal?.endDate);
-  const [endDate, setEndDate] = useState(editingGoal?.endDate ? editingGoal.endDate.split('T')[0] : '');
-  const [linkedToTasbih, setLinkedToTasbih] = useState(getInitialLinkedToTasbih());
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors, isDirty },
+    reset,
+  } = useForm<GoalFormData>({
+    defaultValues: {
+      category: getInitialCategory(),
+      goalType: (editingGoal?.goalType || 'recite') as GoalType,
+      title: editingGoal?.title || habitTemplate?.title || '',
+      targetCount: editingGoal?.targetCount || habitTemplate?.targetCount || 100,
+      hasDeadline: !!editingGoal?.endDate,
+      endDate: editingGoal?.endDate ? editingGoal.endDate.split('T')[0] : '',
+      linkedToTasbih: getInitialLinkedToTasbih(),
+    },
+    mode: 'onChange',
+  });
+
+  const category = watch('category');
+  const goalType = watch('goalType');
+  const title = watch('title');
+  const targetCount = watch('targetCount');
+  const hasDeadline = watch('hasDeadline');
+  const endDate = watch('endDate');
+  const linkedToTasbih = watch('linkedToTasbih');
 
   // Обновляем значения при изменении habitTemplate или editingGoal
   useEffect(() => {
     if (habitTemplate && !editingGoal) {
       const mappedCategory = habitCategoryToGoalCategory[habitTemplate.category];
-      setCategory((mappedCategory || 'azkar') as Category);
-      setTitle(habitTemplate.title);
-      setTargetCount(habitTemplate.targetCount || 100);
-      setLinkedToTasbih(habitTemplate.linkedToTasbih ?? ['azkar', 'salawat', 'dua', 'kalimat'].includes(mappedCategory || ''));
+      reset({
+        category: (mappedCategory || 'azkar') as Category,
+        goalType: 'recite' as GoalType,
+        title: habitTemplate.title,
+        targetCount: habitTemplate.targetCount || 100,
+        hasDeadline: false,
+        endDate: '',
+        linkedToTasbih: habitTemplate.linkedToTasbih ?? ['azkar', 'salawat', 'dua', 'kalimat'].includes(mappedCategory || ''),
+      });
     } else if (editingGoal) {
-      setCategory(editingGoal.category);
-      setGoalType(editingGoal.goalType);
-      setTitle(editingGoal.title);
-      setTargetCount(editingGoal.targetCount);
-      setHasDeadline(!!editingGoal.endDate);
-      setEndDate(editingGoal.endDate ? editingGoal.endDate.split('T')[0] : '');
-      setLinkedToTasbih(!!editingGoal.linkedCounterType);
+      reset({
+        category: editingGoal.category as Category,
+        goalType: editingGoal.goalType as GoalType,
+        title: editingGoal.title,
+        targetCount: editingGoal.targetCount,
+        hasDeadline: !!editingGoal.endDate,
+        endDate: editingGoal.endDate ? editingGoal.endDate.split('T')[0] : '',
+        linkedToTasbih: !!editingGoal.linkedCounterType,
+      });
     }
-  }, [habitTemplate, editingGoal]);
+  }, [habitTemplate, editingGoal, reset]);
 
   // Автоматически предлагать связь с тасбихом при изменении категории на зикр/салават
   useEffect(() => {
     if (!editingGoal && !habitTemplate) {
       // Если категория поддерживает тасбих, автоматически включаем связь
       if (['azkar', 'salawat', 'dua', 'kalimat', 'names99'].includes(category)) {
-        setLinkedToTasbih(true);
+        setValue('linkedToTasbih', true, { shouldValidate: true });
       } else {
         // Для других категорий выключаем, если пользователь явно не установил
-        setLinkedToTasbih(false);
+        setValue('linkedToTasbih', false, { shouldValidate: true });
       }
     }
-  }, [category, editingGoal, habitTemplate]);
+  }, [category, editingGoal, habitTemplate, setValue]);
 
-  const handleSubmit = () => {
-    if (!title.trim() || targetCount <= 0) return;
+  const onFormSubmit = async (data: GoalFormData) => {
+    if (isSubmitting) return;
     
-    onSubmit?.({
-      category,
-      goalType,
-      title: title.trim(),
-      targetCount,
-      endDate: hasDeadline ? endDate : undefined,
-      linkedToTasbih,
-    });
-    
-    setOpen(false);
-    // Сброс формы только если не редактируем цель
-    if (!editingGoal) {
-      setTitle('');
-      setTargetCount(100);
-      setHasDeadline(false);
-      setEndDate('');
-      setCategory('azkar');
-      setLinkedToTasbih(true);
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.({
+        category: data.category,
+        goalType: data.goalType,
+        title: data.title.trim(),
+        targetCount: data.targetCount,
+        endDate: data.hasDeadline && data.endDate ? data.endDate : undefined,
+        linkedToTasbih: data.linkedToTasbih,
+      });
+      
+      setOpen(false);
+      // Сброс формы только если не редактируем цель
+      if (!editingGoal) {
+        reset({
+          category: 'azkar',
+          goalType: 'recite',
+          title: '',
+          targetCount: 100,
+          hasDeadline: false,
+          endDate: '',
+          linkedToTasbih: true,
+        });
+      }
+    } catch (error) {
+      // Ошибка обрабатывается в родительском компоненте
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -143,10 +183,35 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
         <div className="space-y-6 overflow-y-auto pb-20">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Категория</Label>
-            <CategorySelector
-              selected={category}
-              onSelect={setCategory}
-              showAll={false}
+            <Controller
+              name="category"
+              control={control}
+              rules={{ required: 'Выберите категорию' }}
+              render={({ field }) => (
+                <>
+                  <CategorySelector
+                    selected={field.value}
+                    onSelect={(value) => {
+                      field.onChange(value);
+                      // Автоматически предлагать связь с тасбихом
+                      if (!editingGoal && !habitTemplate) {
+                        if (['azkar', 'salawat', 'dua', 'kalimat', 'names99'].includes(value)) {
+                          setValue('linkedToTasbih', true, { shouldValidate: true });
+                        } else {
+                          setValue('linkedToTasbih', false, { shouldValidate: true });
+                        }
+                      }
+                    }}
+                    showAll={false}
+                  />
+                  {errors.category && (
+                    <div className="flex items-center gap-1 text-sm text-destructive mt-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{errors.category.message}</span>
+                    </div>
+                  )}
+                </>
+              )}
             />
           </div>
 
@@ -154,35 +219,70 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
             <Label htmlFor="title">Название цели</Label>
             <Input
               id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              {...register('title', {
+                required: 'Название цели обязательно',
+                minLength: {
+                  value: 2,
+                  message: 'Название должно содержать минимум 2 символа',
+                },
+                maxLength: {
+                  value: 200,
+                  message: 'Название не должно превышать 200 символов',
+                },
+              })}
               placeholder={`${categoryLabels[category]}: моя цель...`}
+              className={cn(errors.title && 'border-destructive focus-visible:ring-destructive')}
               data-testid="input-goal-title"
             />
+            {errors.title && (
+              <div className="flex items-center gap-1 text-sm text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span>{errors.title.message}</span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label>Тип цели</Label>
-            <Select value={goalType} onValueChange={(v) => setGoalType(v as GoalType)}>
-              <SelectTrigger data-testid="select-goal-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recite">Произнести (читать)</SelectItem>
-                <SelectItem value="learn">Выучить наизусть</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="goalType"
+              control={control}
+              rules={{ required: 'Выберите тип цели' }}
+              render={({ field }) => (
+                <>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger 
+                      data-testid="select-goal-type"
+                      className={cn(errors.goalType && 'border-destructive')}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recite">Произнести (читать)</SelectItem>
+                      <SelectItem value="learn">Выучить наизусть</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.goalType && (
+                    <div className="flex items-center gap-1 text-sm text-destructive">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{errors.goalType.message}</span>
+                    </div>
+                  )}
+                </>
+              )}
+            />
           </div>
 
           <div className="space-y-2">
-            <Label>Целевое количество</Label>
+            <Label htmlFor="targetCount">Целевое количество</Label>
             <div className="flex flex-wrap gap-2">
               {presetTargets.map((target) => (
                 <Button
                   key={target}
+                  type="button"
                   variant={targetCount === target ? "default" : "secondary"}
                   size="sm"
-                  onClick={() => setTargetCount(target)}
+                  onClick={() => setValue('targetCount', target, { shouldValidate: true })}
                   data-testid={`button-target-${target}`}
                 >
                   {target.toLocaleString()}
@@ -190,13 +290,31 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
               ))}
             </div>
             <Input
+              id="targetCount"
               type="number"
-              value={targetCount}
-              onChange={(e) => setTargetCount(Number(e.target.value))}
+              {...register('targetCount', {
+                required: 'Укажите целевое количество',
+                min: {
+                  value: 1,
+                  message: 'Количество должно быть не менее 1',
+                },
+                max: {
+                  value: 1000000,
+                  message: 'Количество не должно превышать 1,000,000',
+                },
+                valueAsNumber: true,
+              })}
               min={1}
-              className="mt-2"
+              max={1000000}
+              className={cn("mt-2", errors.targetCount && 'border-destructive focus-visible:ring-destructive')}
               data-testid="input-target-count"
             />
+            {errors.targetCount && (
+              <div className="flex items-center gap-1 text-sm text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span>{errors.targetCount.message}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between py-2">
@@ -206,11 +324,22 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
                 Система рассчитает ежедневный план
               </p>
             </div>
-            <Switch
-              id="deadline"
-              checked={hasDeadline}
-              onCheckedChange={setHasDeadline}
-              data-testid="switch-deadline"
+            <Controller
+              name="hasDeadline"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="deadline"
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (!checked) {
+                      setValue('endDate', '', { shouldValidate: false });
+                    }
+                  }}
+                  data-testid="switch-deadline"
+                />
+              )}
             />
           </div>
 
@@ -222,10 +351,22 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
                 <Input
                   id="endDate"
                   type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="pl-10"
+                  {...register('endDate', {
+                    required: hasDeadline ? 'Укажите срок выполнения' : false,
+                    validate: (value) => {
+                      if (hasDeadline && value) {
+                        const selectedDate = new Date(value);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (selectedDate < today) {
+                          return 'Срок выполнения не может быть в прошлом';
+                        }
+                      }
+                      return true;
+                    },
+                  })}
                   min={new Date().toISOString().split('T')[0]}
+                  className={cn("pl-10", errors.endDate && 'border-destructive focus-visible:ring-destructive')}
                   data-testid="input-end-date"
                 />
               </div>
@@ -240,11 +381,17 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
                   Прогресс будет учитываться автоматически
                 </p>
               </div>
-              <Switch
-                id="tasbih"
-                checked={linkedToTasbih}
-                onCheckedChange={setLinkedToTasbih}
-                data-testid="switch-tasbih"
+              <Controller
+                name="linkedToTasbih"
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    id="tasbih"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    data-testid="switch-tasbih"
+                  />
+                )}
               />
             </div>
           )}
@@ -252,14 +399,26 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
 
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
           <Button
-            className="w-full"
+            className="w-full relative"
             size="lg"
-            onClick={handleSubmit}
-            disabled={!title.trim() || targetCount <= 0}
+            onClick={handleSubmit(onFormSubmit)}
+            disabled={isSubmitting || Object.keys(errors).length > 0 || !title.trim() || targetCount <= 0}
             data-testid="button-submit-goal"
           >
-            {editingGoal ? 'Сохранить изменения' : 'Создать цель'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Сохранение...
+              </>
+            ) : (
+              editingGoal ? 'Сохранить изменения' : 'Создать цель'
+            )}
           </Button>
+          {Object.keys(errors).length > 0 && (
+            <p className="text-xs text-destructive text-center mt-2">
+              Исправьте ошибки в форме перед сохранением
+            </p>
+          )}
         </div>
       </SheetContent>
     </Sheet>

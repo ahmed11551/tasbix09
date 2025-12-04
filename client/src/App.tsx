@@ -8,6 +8,8 @@ import { DataProvider } from "@/context/DataContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import BottomNav from "@/components/BottomNav";
 import TelegramAuth from "@/components/TelegramAuth";
+import { OfflineBanner } from "@/components/ui/offline-banner";
+import { SkipToMain } from "@/components/ui/skip-to-main";
 import NotFound from "@/pages/not-found";
 
 // Lazy loading для страниц - уменьшает initial bundle size
@@ -49,6 +51,8 @@ function App() {
           <ErrorBoundary>
             <DataProvider>
               <TelegramAuth />
+              <SkipToMain />
+              <OfflineBanner />
               <div className="min-h-screen bg-background">
                 <Router />
                 <BottomNav />

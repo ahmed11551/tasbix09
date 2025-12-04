@@ -437,7 +437,7 @@ export default function ReportsPage() {
   const completedGoals = goals.filter((g: any) => g.status === 'completed');
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div id="main-content" tabIndex={-1} className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14 max-w-md mx-auto">
           <h1 className="font-display font-semibold text-lg">Отчёты</h1>

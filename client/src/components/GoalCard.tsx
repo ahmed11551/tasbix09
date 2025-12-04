@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { TextWithTooltip } from '@/components/ui/text-with-tooltip';
 import { cn } from '@/lib/utils';
 import { 
   BookOpen, 
@@ -107,8 +108,10 @@ export default function GoalCard({ goal, onContinue, onEdit, compact = false }: 
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium truncate">{goal.title}</span>
-              <div className={cn("w-2 h-2 rounded-full", status.color)} />
+              <TextWithTooltip className="text-sm font-medium">
+                {goal.title}
+              </TextWithTooltip>
+              <div className={cn("w-2 h-2 rounded-full shrink-0", status.color)} />
             </div>
             <Progress value={progress} className="h-1.5 mt-1" />
             <span className="text-xs text-muted-foreground">

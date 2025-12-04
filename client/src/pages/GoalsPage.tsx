@@ -48,6 +48,7 @@ import {
   ListTodo,
   Flag,
   Circle,
+  Loader2,
   Square,
   X,
   Calculator,
@@ -219,7 +220,9 @@ function HabitCard({ habit, weekDays, onToggleDay, onEdit, onDelete, isHighlight
             {getIconByName(habit.iconName, "w-5 h-5 text-primary")}
           </div>
           <div className="min-w-0">
-            <span className="font-medium text-sm block truncate">{habit.title}</span>
+            <TextWithTooltip className="font-medium text-sm block">
+              {habit.title}
+            </TextWithTooltip>
             <div className="flex items-center gap-1.5">
               <Progress value={progressPercent} className="w-16 h-1.5" />
               <span className="text-xs text-muted-foreground">{completedThisWeek}/{weeklyTarget}</span>
@@ -510,9 +513,17 @@ export default function GoalsPage() {
   // API hooks
   const queryClient = useQueryClient();
   const { data: goals = [], isLoading: goalsLoading } = useGoals();
+  const { data: habits: apiHabits = [], isLoading: habitsLoading } = useHabits();
+  const { data: tasks: apiTasks = [], isLoading: tasksLoading } = useTasks();
   const createGoalMutation = useCreateGoal();
   const updateGoalMutation = useUpdateGoal();
   const deleteGoalMutation = useDeleteGoal();
+  const createHabitMutation = useCreateHabit();
+  const updateHabitMutation = useUpdateHabit();
+  const deleteHabitMutation = useDeleteHabit();
+  const createTaskMutation = useCreateTask();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
   const checkBadgesMutation = useCheckBadges();
   
   const { 
@@ -658,7 +669,7 @@ export default function GoalsPage() {
   const categoryOrder: Array<keyof typeof goalCategoryLabels> = ['azkar', 'salawat', 'dua', 'kalimat', 'names99', 'surah', 'ayah', 'general'];
 
   const filteredTasks = useMemo(() => {
-    let result = tasks;
+    let result = tasksList;
     
     if (taskFilter === 'today') {
       const today = new Date().toISOString().split('T')[0];
@@ -750,6 +761,16 @@ export default function GoalsPage() {
     setDeleteDialogOpen(false);
   };
 
+  const createGoalMutation = useCreateGoal();
+  const updateGoalMutation = useUpdateGoal();
+  const deleteGoalMutation = useDeleteGoal();
+  const createHabitMutation = useCreateHabit();
+  const updateHabitMutation = useUpdateHabit();
+  const deleteHabitMutation = useDeleteHabit();
+  const createTaskMutation = useCreateTask();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+
   const handleCreateGoal = async (goalData: {
     category: string;
     goalType: string;
@@ -775,14 +796,17 @@ export default function GoalsPage() {
         await updateGoalMutation.mutateAsync({ id: editingGoal.id, data: goalPayload });
         toast({
           title: "Цель обновлена",
-          description: "Изменения сохранены",
+          description: "Изменения успешно сохранены",
+          duration: 3000,
         });
         setEditingGoal(null);
       } else {
         await createGoalMutation.mutateAsync(goalPayload);
         toast({
           title: "Цель создана",
-          description: "Новая цель добавлена",
+          description: "Новая цель успешно добавлена",
+          duration: 3000,
+          className: "border-l-4 border-l-green-500",
         });
       }
       
@@ -790,8 +814,6 @@ export default function GoalsPage() {
       React.startTransition(() => {
         checkBadgesMutation.mutate();
       });
-      
-      setGoalSheetOpen(false);
     } catch (error: any) {
       // Проверка на ошибку лимита целей
       if (error?.status === 403 && error?.responseData?.upgradeRequired) {
@@ -932,7 +954,7 @@ export default function GoalsPage() {
   }, [searchOpen]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+      <div id="main-content" tabIndex={-1} className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14 max-w-md mx-auto">
           {searchOpen ? (
@@ -1037,12 +1059,25 @@ export default function GoalsPage() {
             </div>
 
             {goalsLoading ? (
-              <div className="text-center py-6 text-muted-foreground">Загрузка целей...</div>
+              <GoalsListSkeleton count={3} />
             ) : filteredGoals.length === 0 ? (
-              <div className="text-center py-6">
-                <Flag className="w-10 h-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-sm text-muted-foreground">Нет целей</p>
-              </div>
+              <EmptyState
+                icon={Flag}
+                title="Нет целей"
+                description={
+                  searchQuery 
+                    ? `Не найдено целей по запросу "${searchQuery}"`
+                    : activeTab === 'active'
+                      ? "У вас пока нет активных целей. Создайте первую цель для отслеживания прогресса"
+                      : "Нет целей в этой категории"
+                }
+                action={
+                  !searchQuery ? {
+                    label: "Создать цель",
+                    onClick: () => setGoalSheetOpen(true)
+                  } : undefined
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {categoryOrder.map((category) => {
@@ -1161,12 +1196,14 @@ export default function GoalsPage() {
                         </button>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className={cn(
-                              "text-sm truncate",
-                              task.isCompleted && "line-through text-muted-foreground"
-                            )}>
+                            <TextWithTooltip
+                              className={cn(
+                                "text-sm",
+                                task.isCompleted && "line-through text-muted-foreground"
+                              )}
+                            >
                               {task.title}
-                            </span>
+                            </TextWithTooltip>
                             {task.priority === 'high' && (
                               <Flag className="w-4 h-4 text-rose-300 fill-rose-300 shrink-0" />
                             )}
@@ -1286,10 +1323,20 @@ export default function GoalsPage() {
           </CollapsibleTrigger>
           
           <CollapsibleContent className="space-y-2">
-            {habits.length === 0 ? (
-              <div className="text-center py-8">
-                <Target className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground mb-4">Добавьте первую привычку</p>
+            {habitsLoading ? (
+              <HabitsListSkeleton count={3} />
+            ) : habits.length === 0 ? (
+              <EmptyState
+                icon={Circle}
+                title="Нет привычек"
+                description="Создайте свою первую привычку для формирования полезных навыков"
+                action={{
+                  label: "Добавить привычку",
+                  onClick: () => setHabitCatalogOpen(true)
+                }}
+              />
+            ) : (
+              <>
                 <HabitCatalogSheet
                   onSelectHabit={handleSelectFromCatalog}
                   trigger={

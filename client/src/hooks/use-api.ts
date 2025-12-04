@@ -20,7 +20,34 @@ export function useCreateHabit() {
       const res = await habitsApi.create(data);
       return res.habit as Habit;
     },
-    onSuccess: () => {
+    onMutate: async (newHabit) => {
+      await queryClient.cancelQueries({ queryKey: ["habits"] });
+      
+      const previousHabits = queryClient.getQueryData<Habit[]>(["habits"]);
+      
+      const optimisticHabit: Habit = {
+        id: `temp-${Date.now()}`,
+        userId: '',
+        completedDates: [],
+        ...(newHabit as Partial<Habit>),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as Habit;
+      
+      queryClient.setQueryData<Habit[]>(["habits"], (old = []) => [...old, optimisticHabit]);
+      
+      return { previousHabits };
+    },
+    onError: (err, newHabit, context) => {
+      if (context?.previousHabits) {
+        queryClient.setQueryData(["habits"], context.previousHabits);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Habit[]>(["habits"], (old = []) => {
+        const filtered = old.filter(h => !h.id.startsWith('temp-'));
+        return [...filtered, data];
+      });
       queryClient.invalidateQueries({ queryKey: ["habits"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
@@ -34,7 +61,30 @@ export function useUpdateHabit() {
       const res = await habitsApi.update(id, data);
       return res.habit as Habit;
     },
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ["habits"] });
+      
+      const previousHabits = queryClient.getQueryData<Habit[]>(["habits"]);
+      
+      queryClient.setQueryData<Habit[]>(["habits"], (old = []) =>
+        old.map(habit =>
+          habit.id === id
+            ? { ...habit, ...(data as Partial<Habit>), updatedAt: new Date().toISOString() }
+            : habit
+        )
+      );
+      
+      return { previousHabits };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousHabits) {
+        queryClient.setQueryData(["habits"], context.previousHabits);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Habit[]>(["habits"], (old = []) =>
+        old.map(habit => (habit.id === data.id ? data : habit))
+      );
       queryClient.invalidateQueries({ queryKey: ["habits"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
@@ -46,6 +96,22 @@ export function useDeleteHabit() {
   return useMutation({
     mutationFn: async (id: string) => {
       await habitsApi.delete(id);
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["habits"] });
+      
+      const previousHabits = queryClient.getQueryData<Habit[]>(["habits"]);
+      
+      queryClient.setQueryData<Habit[]>(["habits"], (old = []) =>
+        old.filter(habit => habit.id !== id)
+      );
+      
+      return { previousHabits };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousHabits) {
+        queryClient.setQueryData(["habits"], context.previousHabits);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["habits"] });
@@ -72,7 +138,36 @@ export function useCreateTask() {
       const res = await tasksApi.create(data);
       return res.task as Task;
     },
-    onSuccess: () => {
+    onMutate: async (newTask) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+      
+      const optimisticTask: Task = {
+        id: `temp-${Date.now()}`,
+        userId: '',
+        isCompleted: false,
+        subtasks: [],
+        reminders: [],
+        ...(newTask as Partial<Task>),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as Task;
+      
+      queryClient.setQueryData<Task[]>(["tasks"], (old = []) => [...old, optimisticTask]);
+      
+      return { previousTasks };
+    },
+    onError: (err, newTask, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
+        const filtered = old.filter(t => !t.id.startsWith('temp-'));
+        return [...filtered, data];
+      });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
@@ -86,7 +181,30 @@ export function useUpdateTask() {
       const res = await tasksApi.update(id, data);
       return res.task as Task;
     },
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+      
+      queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
+        old.map(task =>
+          task.id === id
+            ? { ...task, ...(data as Partial<Task>), updatedAt: new Date().toISOString() }
+            : task
+        )
+      );
+      
+      return { previousTasks };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
+        old.map(task => (task.id === data.id ? data : task))
+      );
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
@@ -98,6 +216,22 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       await tasksApi.delete(id);
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+      
+      queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
+        old.filter(task => task.id !== id)
+      );
+      
+      return { previousTasks };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -124,7 +258,38 @@ export function useCreateGoal() {
       const res = await goalsApi.create(data);
       return res.goal as Goal;
     },
-    onSuccess: () => {
+    onMutate: async (newGoal) => {
+      // Отменяем исходящие запросы, чтобы они не перезаписали оптимистичное обновление
+      await queryClient.cancelQueries({ queryKey: ["goals"] });
+      
+      // Сохраняем предыдущее значение для отката
+      const previousGoals = queryClient.getQueryData<Goal[]>(["goals"]);
+      
+      // Оптимистично обновляем кэш
+      const optimisticGoal: Goal = {
+        id: `temp-${Date.now()}`,
+        userId: '',
+        ...(newGoal as Partial<Goal>),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as Goal;
+      
+      queryClient.setQueryData<Goal[]>(["goals"], (old = []) => [...old, optimisticGoal]);
+      
+      return { previousGoals };
+    },
+    onError: (err, newGoal, context) => {
+      // Откатываем изменения при ошибке
+      if (context?.previousGoals) {
+        queryClient.setQueryData(["goals"], context.previousGoals);
+      }
+    },
+    onSuccess: (data) => {
+      // Обновляем оптимистичное значение на реальное
+      queryClient.setQueryData<Goal[]>(["goals"], (old = []) => {
+        const filtered = old.filter(g => !g.id.startsWith('temp-'));
+        return [...filtered, data];
+      });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
     },
   });
@@ -137,7 +302,32 @@ export function useUpdateGoal() {
       const res = await goalsApi.update(id, data);
       return res.goal as Goal;
     },
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ["goals"] });
+      
+      const previousGoals = queryClient.getQueryData<Goal[]>(["goals"]);
+      
+      // Оптимистично обновляем цель
+      queryClient.setQueryData<Goal[]>(["goals"], (old = []) =>
+        old.map(goal =>
+          goal.id === id
+            ? { ...goal, ...(data as Partial<Goal>), updatedAt: new Date().toISOString() }
+            : goal
+        )
+      );
+      
+      return { previousGoals };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(["goals"], context.previousGoals);
+      }
+    },
+    onSuccess: (data) => {
+      // Обновляем на реальное значение
+      queryClient.setQueryData<Goal[]>(["goals"], (old = []) =>
+        old.map(goal => (goal.id === data.id ? data : goal))
+      );
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
@@ -149,6 +339,24 @@ export function useDeleteGoal() {
   return useMutation({
     mutationFn: async (id: string) => {
       await goalsApi.delete(id);
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["goals"] });
+      
+      const previousGoals = queryClient.getQueryData<Goal[]>(["goals"]);
+      const deletedGoal = previousGoals?.find(g => g.id === id);
+      
+      // Оптимистично удаляем цель
+      queryClient.setQueryData<Goal[]>(["goals"], (old = []) =>
+        old.filter(goal => goal.id !== id)
+      );
+      
+      return { previousGoals, deletedGoal };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousGoals) {
+        queryClient.setQueryData(["goals"], context.previousGoals);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });

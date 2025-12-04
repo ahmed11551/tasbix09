@@ -57,6 +57,24 @@ export default defineConfig({
     minify: isProduction,
     cssCodeSplit: false,
     rollupOptions: {
+      external: (id) => {
+        // Исключаем @sentry/react из сборки - будем загружать его динамически во время выполнения
+        if (id === '@sentry/react' || id.startsWith('@sentry/')) {
+          return true;
+        }
+        return false;
+      },
+      onwarn(warning, warn) {
+        // Игнорируем предупреждения о Sentry
+        const codesToIgnore = ['UNRESOLVED_IMPORT', 'UNRESOLVED_ENTRY'];
+        if (codesToIgnore.includes(warning.code)) {
+          const source = (warning as any).source || (warning as any).id || (warning as any).importer || '';
+          if (typeof source === 'string' && source.includes('@sentry')) {
+            return; // Игнорируем предупреждения о Sentry
+          }
+        }
+        warn(warning);
+      },
       output: {
         manualChunks: (id) => {
           // Code splitting для оптимизации bundle size

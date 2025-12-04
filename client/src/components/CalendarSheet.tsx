@@ -368,8 +368,10 @@ export default function CalendarSheet({ open, onOpenChange, habits, tasks }: Cal
                                   key={habit.id} 
                                   className="flex items-center gap-1.5 text-[10px] p-1 rounded bg-muted/50"
                                 >
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                  <span className="truncate">{habit.title}</span>
+                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                                  <TextWithTooltip className="text-xs">
+                                    {habit.title}
+                                  </TextWithTooltip>
                                 </div>
                               ))}
                               {(filter === 'all' || filter === 'tasks' || filter === 'overdue') && selectedDateInfo.tasks.slice(0, 2).map(task => {
@@ -388,7 +390,9 @@ export default function CalendarSheet({ open, onOpenChange, habits, tasks }: Cal
                                       "w-1.5 h-1.5 rounded-full",
                                       isOverdue ? "bg-red-500" : "bg-blue-500"
                                     )} />
-                                    <span className="truncate">{task.title}</span>
+                                    <TextWithTooltip className="text-xs">
+                                      {task.title}
+                                    </TextWithTooltip>
                                     {task.priority === 'high' && (
                                       <Flag className="w-2.5 h-2.5 text-red-500 shrink-0 fill-red-500" />
                                     )}

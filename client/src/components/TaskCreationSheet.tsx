@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Sheet,
   SheetContent,
@@ -19,6 +20,8 @@ import {
   Plus,
   Trash2,
   Flag,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -46,6 +49,7 @@ export default function TaskCreationSheet({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
@@ -95,20 +99,11 @@ export default function TaskCreationSheet({
     }
   }, [editingTask, open]);
 
-  const resetForm = () => {
-    setTitle('');
-    setNotes('');
-    setSubtasks([]);
-    setNewSubtask('');
-    setDateOption('none');
-    setCustomDate(undefined);
-    setHasTime(false);
-    setTime('12:00');
-    setPriority('medium');
-  };
-
-  const handleSubmit = () => {
-    if (!title.trim()) return;
+  const onFormSubmit = async (data: TaskFormData) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
     
     let dueDate: string | undefined;
     const today = new Date();
@@ -137,9 +132,14 @@ export default function TaskCreationSheet({
       createdAt: editingTask?.createdAt ?? new Date().toISOString(),
     };
 
-    onSubmit(task);
-    resetForm();
-    setOpen(false);
+      await onSubmit(task);
+      resetForm();
+      setOpen(false);
+    } catch (error) {
+      // Ошибка обрабатывается в родительском компоненте
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const addSubtask = () => {
@@ -192,13 +192,22 @@ export default function TaskCreationSheet({
           <Button 
             variant="default" 
             size="sm"
-            onClick={handleSubmit}
-            disabled={!title.trim()}
-            className="shrink-0"
+            onClick={handleSubmit(onFormSubmit)}
+            disabled={!title.trim() || isSubmitting || Object.keys(errors).length > 0}
+            className="shrink-0 relative"
             data-testid="button-save-task"
           >
-            <Check className="w-4 h-4 mr-1" />
-            Готово
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                Сохранение...
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                Готово
+              </>
+            )}
           </Button>
         </div>
 
@@ -207,21 +216,52 @@ export default function TaskCreationSheet({
             <Card className="divide-y divide-border">
               <div className="p-4">
                 <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  {...register('title', {
+                    required: 'Название задачи обязательно',
+                    minLength: {
+                      value: 1,
+                      message: 'Название не может быть пустым',
+                    },
+                    maxLength: {
+                      value: 200,
+                      message: 'Название не должно превышать 200 символов',
+                    },
+                  })}
                   placeholder="Название задачи"
-                  className="border-0 p-0 text-base focus-visible:ring-0 h-auto"
+                  className={cn(
+                    "border-0 p-0 text-base focus-visible:ring-0 h-auto",
+                    errors.title && "border-b border-destructive"
+                  )}
                   data-testid="input-task-title"
                 />
+                {errors.title && (
+                  <div className="flex items-center gap-1 text-xs text-destructive mt-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.title.message}</span>
+                  </div>
+                )}
               </div>
               <div className="p-4">
                 <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  {...register('notes', {
+                    maxLength: {
+                      value: 1000,
+                      message: 'Заметка не должна превышать 1000 символов',
+                    },
+                  })}
                   placeholder="Заметка к задаче"
-                  className="border-0 p-0 resize-none min-h-[60px] focus-visible:ring-0"
+                  className={cn(
+                    "border-0 p-0 resize-none min-h-[60px] focus-visible:ring-0",
+                    errors.notes && "border-b border-destructive"
+                  )}
                   data-testid="input-task-notes"
                 />
+                {errors.notes && (
+                  <div className="flex items-center gap-1 text-xs text-destructive mt-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.notes.message}</span>
+                  </div>
+                )}
               </div>
               
               <div className="p-4 space-y-2">
@@ -336,29 +376,38 @@ export default function TaskCreationSheet({
                     <div className="flex items-center gap-2">
                       <Input
                         type="time"
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="w-24 h-8"
+                        {...register('time', {
+                          required: hasTime ? 'Укажите время' : false,
+                        })}
+                        className={cn("w-24 h-8", errors.time && "border-destructive")}
                       />
                       <Button
+                        type="button"
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => setHasTime(false)}
+                        onClick={() => setValue('hasTime', false, { shouldValidate: false })}
                       >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                   ) : (
                     <Button
+                      type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setHasTime(true)}
+                      onClick={() => setValue('hasTime', true, { shouldValidate: true })}
                     >
                       Без времени
                     </Button>
                   )}
                 </div>
+                {errors.time && (
+                  <div className="flex items-center gap-1 text-xs text-destructive mt-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.time.message}</span>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -368,32 +417,41 @@ export default function TaskCreationSheet({
                   <Flag className="w-5 h-5 text-muted-foreground" />
                   <span>Приоритет</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant={priority === 'low' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPriority('low')}
-                    className={cn(priority === 'low' && 'bg-green-600 hover:bg-green-700')}
-                  >
-                    Низкий
-                  </Button>
-                  <Button
-                    variant={priority === 'medium' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPriority('medium')}
-                    className={cn(priority === 'medium' && 'bg-amber-500 hover:bg-amber-600')}
-                  >
-                    Средний
-                  </Button>
-                  <Button
-                    variant={priority === 'high' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPriority('high')}
-                    className={cn(priority === 'high' && 'bg-red-600 hover:bg-red-700')}
-                  >
-                    Высокий
-                  </Button>
-                </div>
+                <Controller
+                  name="priority"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant={field.value === 'low' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => field.onChange('low')}
+                        className={cn(field.value === 'low' && 'bg-green-600 hover:bg-green-700')}
+                      >
+                        Низкий
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value === 'medium' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => field.onChange('medium')}
+                        className={cn(field.value === 'medium' && 'bg-amber-500 hover:bg-amber-600')}
+                      >
+                        Средний
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value === 'high' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => field.onChange('high')}
+                        className={cn(field.value === 'high' && 'bg-red-600 hover:bg-red-700')}
+                      >
+                        Высокий
+                      </Button>
+                    </div>
+                  )}
+                />
               </div>
             </Card>
           </div>

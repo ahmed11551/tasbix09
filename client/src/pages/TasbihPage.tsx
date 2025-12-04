@@ -645,7 +645,9 @@ export default function TasbihPage() {
                   >
                     <div className="flex items-center justify-between pointer-events-none">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{sessionTitle}</p>
+                        <TextWithTooltip as="p" className="text-sm font-medium">
+                          {sessionTitle}
+                        </TextWithTooltip>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>{session.currentCount || 0} счёт</span>
                           {rounds > 0 && (
