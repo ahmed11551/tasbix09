@@ -41,5 +41,6 @@ EXPOSE 5000
 
 ENV PORT=5000
 
-CMD ["node", "dist/index.cjs"]
+# Проверка наличия файла и запуск приложения
+CMD ["sh", "-c", "if [ -f dist/index.cjs ]; then node dist/index.cjs; elif [ -f dist/server/index.cjs ]; then node dist/server/index.cjs; else echo 'Error: Entry point not found. Available files:'; ls -la dist/ 2>/dev/null || echo 'dist/ does not exist'; exit 1; fi"]
 
