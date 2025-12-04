@@ -123,7 +123,10 @@ function calculateQazaDebt(params: {
 // GET /api/qaza - получить данные о долге
 router.get("/", requireAuth, async (req, res, next) => {
   try {
-    const userId = req.session!.userId;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     
     const qazaDebt = await prisma.qazaDebt.findUnique({
       where: { userId },
@@ -142,7 +145,11 @@ router.get("/", requireAuth, async (req, res, next) => {
 // POST /api/qaza/calculate - рассчитать долг
 router.post("/calculate", requireAuth, async (req, res, next) => {
   try {
-    const userId = req.session!.userId;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const parsed = calculateQazaSchema.parse(req.body);
     
     const debt = calculateQazaDebt(parsed);
@@ -192,7 +199,11 @@ router.post("/calculate", requireAuth, async (req, res, next) => {
 // PATCH /api/qaza/progress - обновить прогресс восполнения
 router.patch("/progress", requireAuth, async (req, res, next) => {
   try {
-    const userId = req.session!.userId;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const parsed = updateProgressSchema.parse(req.body);
     
     const qazaDebt = await prisma.qazaDebt.findUnique({
@@ -301,7 +312,11 @@ router.post("/calendar/mark", requireAuth, async (req, res, next) => {
 // GET /api/qaza/calendar - получить календарь
 router.get("/calendar", requireAuth, async (req, res, next) => {
   try {
-    const userId = req.session!.userId;
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const { startDate, endDate } = req.query;
 
     const where: any = { userId };
