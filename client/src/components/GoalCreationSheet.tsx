@@ -129,14 +129,11 @@ export default function GoalCreationSheet({ onSubmit, trigger, open: controlledO
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {trigger || (
-          <Button className="gap-2" data-testid="button-create-goal">
-            <Plus className="w-4 h-4" />
-            Добавить цель
-          </Button>
-        )}
-      </SheetTrigger>
+      {trigger && (
+        <SheetTrigger asChild>
+          {trigger}
+        </SheetTrigger>
+      )}
       
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl">
         <SheetHeader className="pb-4">
