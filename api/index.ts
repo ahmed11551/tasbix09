@@ -114,21 +114,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error: any) {
     console.error('Handler error:', error);
+    console.error('Error name:', error?.name);
+    console.error('Error message:', error?.message);
     console.error('Error stack:', error?.stack);
+    console.error('DATABASE_URL present:', !!process.env.DATABASE_URL);
+    
     if (!res.headersSent) {
       // Проверка на ошибки подключения к БД
-      const errorMessage = error?.message?.toLowerCase() || '';
-      if (errorMessage.includes('database') || errorMessage.includes('prisma') || errorMessage.includes('connection')) {
+      const errorMessage = (error?.message || '').toLowerCase();
+      const errorName = (error?.name || '').toLowerCase();
+      
+      if (
+        !process.env.DATABASE_URL ||
+        errorMessage.includes('database') || 
+        errorMessage.includes('prisma') || 
+        errorMessage.includes('connection') ||
+        errorMessage.includes('p1001') ||
+        errorMessage.includes('p1002') ||
+        errorMessage.includes('p1003') ||
+        errorName.includes('prisma') ||
+        errorName.includes('initialization')
+      ) {
         return res.status(503).json({
           error: 'Database connection failed',
-          message: 'Не удалось подключиться к базе данных. Проверьте DATABASE_URL в настройках Vercel.',
-          hint: 'Убедитесь, что база данных создана и доступна. См. DATABASE_SETUP.md'
+          message: !process.env.DATABASE_URL 
+            ? 'DATABASE_URL не установлен в переменных окружения Vercel'
+            : 'Не удалось подключиться к базе данных',
+          hint: 'Проверьте DATABASE_URL в Settings → Environment Variables → Production/Preview/Development. Убедитесь, что база данных создана и доступна.'
         });
       }
       
       res.status(500).json({ 
         error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Произошла ошибка при обработке запроса'
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Произошла ошибка при обработке запроса',
+        ...(process.env.NODE_ENV === 'development' && {
+          name: error?.name,
+          stack: error?.stack
+        })
       });
     }
   }
