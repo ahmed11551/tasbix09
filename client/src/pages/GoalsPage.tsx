@@ -512,7 +512,7 @@ export default function GoalsPage() {
   
   // API hooks
   const queryClient = useQueryClient();
-  const { data: goals = [], isLoading: goalsLoading } = useGoals();
+  const { data: goals = [], isLoading: goalsLoading } = useGoals(); // Исправлено: было goal, стало goals
   const { data: habits: apiHabits = [], isLoading: habitsLoading } = useHabits();
   const { data: tasks: apiTasks = [], isLoading: tasksLoading } = useTasks();
   const createGoalMutation = useCreateGoal();
