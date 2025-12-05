@@ -627,10 +627,14 @@ export default function GoalsPage() {
     }
   }, [highlightHabitId]);
 
+  // Используем данные из API, если доступны, иначе из контекста
+  const habitsList = apiHabits.length > 0 ? apiHabits : habits;
+  const tasksList = apiTasks.length > 0 ? apiTasks : tasks;
+
   const filteredHabits = useMemo(() => {
-    if (!habitCategoryFilter) return habits;
-    return habits.filter(h => h.category === habitCategoryFilter);
-  }, [habits, habitCategoryFilter]);
+    if (!habitCategoryFilter) return habitsList;
+    return habitsList.filter(h => h.category === habitCategoryFilter);
+  }, [habitsList, habitCategoryFilter]);
 
   const filteredGoals = useMemo(() => {
     let result = goals;
@@ -692,7 +696,7 @@ export default function GoalsPage() {
     }
     
     return result;
-  }, [tasks, taskFilter, searchQuery]);
+  }, [tasksList, taskFilter, searchQuery]);
 
   const handleSelectFromCatalog = (template: HabitTemplate) => {
     setSelectedTemplate(template);
@@ -760,16 +764,6 @@ export default function GoalsPage() {
     }
     setDeleteDialogOpen(false);
   };
-
-  const createGoalMutation = useCreateGoal();
-  const updateGoalMutation = useUpdateGoal();
-  const deleteGoalMutation = useDeleteGoal();
-  const createHabitMutation = useCreateHabit();
-  const updateHabitMutation = useUpdateHabit();
-  const deleteHabitMutation = useDeleteHabit();
-  const createTaskMutation = useCreateTask();
-  const updateTaskMutation = useUpdateTask();
-  const deleteTaskMutation = useDeleteTask();
 
   const handleCreateGoal = async (goalData: {
     category: string;
@@ -1011,7 +1005,7 @@ export default function GoalsPage() {
       <main className="max-w-md mx-auto px-4 py-4 space-y-4 overflow-y-auto pb-24">
         <ScrollArea className="h-[calc(100vh-3.5rem)]">
           <div className="space-y-4">
-            <AIInsight habits={habits} />
+            <AIInsight habits={habitsList} />
 
         {/* Быстрый доступ к калькулятору Каза */}
         <Card className="p-3 bg-primary/5 border-primary/20">
@@ -1067,7 +1061,7 @@ export default function GoalsPage() {
                 description={
                   searchQuery 
                     ? `Не найдено целей по запросу "${searchQuery}"`
-                    : activeTab === 'active'
+                    : goalFilter === 'active'
                       ? "У вас пока нет активных целей. Создайте первую цель для отслеживания прогресса"
                       : "Нет целей в этой категории"
                 }
@@ -1364,7 +1358,7 @@ export default function GoalsPage() {
                       Все
                     </button>
                     {habitCategories.map((category) => {
-                      const count = habits.filter(h => h.category === category.id).length;
+                      const count = habitsList.filter(h => h.category === category.id).length;
                       if (count === 0) return null;
                       return (
                         <button
