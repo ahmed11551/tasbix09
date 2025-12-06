@@ -18,6 +18,7 @@ import {
 import { Settings2, Target, ChevronRight, History, Play, Volume2 } from 'lucide-react';
 import type { DhikrItem, PrayerSegment, TranscriptionType } from '@/lib/types';
 import { Link } from 'wouter';
+import { TextWithTooltip } from '@/components/ui/text-with-tooltip';
 import { 
   useGoals, 
   useStats, 
@@ -115,8 +116,15 @@ export default function TasbihPage() {
   const [showAudioPlayer, setShowAudioPlayer] = useState(true);
   const [transcriptionType, setTranscriptionType] = useState<TranscriptionType>('cyrillic');
   const [recentActions, setRecentActions] = useState<RecentAction[]>([]);
+  // Состояние для автоматической последовательности зикров после намаза
+  const [isPrayerSequenceMode, setIsPrayerSequenceMode] = useState(false);
+  const [sequenceStage, setSequenceStage] = useState(0); // 0=Субханаллах, 1=Альхамдулиллах, 2=Аллаху акбар
 
-  const activeGoals = goals.filter((g: any) => g.status === 'active').slice(0, 2);
+  // Фильтруем цели - показываем только связанные с салаватами/азкарами, чтобы не делать страницу длинной
+  const activeGoals = goals.filter((g: any) => 
+    g.status === 'active' && 
+    (g.category === 'salawat' || g.category === 'azkar')
+  ).slice(0, 2);
   // Найти связанную цель для текущего выбранного зикра
   const linkedGoal = goals.find((g: any) => 
     g.linkedCounterType === selectedItem.category && 
@@ -327,21 +335,96 @@ export default function TasbihPage() {
     }
 
     setSelectedPrayer(prayer);
-    setCurrentCount(0);
+    
+    // Активируем режим последовательности зикров после намаза
+    setIsPrayerSequenceMode(true);
+    setSequenceStage(0); // Начинаем с Субханаллах
+    
+    // Получаем зикры для последовательности
+    const azkarItems = getDhikrItemsByCategory('azkar');
+    const subhanallahItem = azkarItems.find(item => item.id === 'azkar-ap-1') || {
+      id: 'azkar-ap-1',
+      category: 'azkar' as const,
+      slug: 'azkar-ap-1',
+      titleAr: 'سُبْحَانَ اللَّهِ',
+      titleRu: 'СубханАллах',
+      titleEn: 'SubhanAllah',
+      transcriptionCyrillic: 'СубханАллах',
+      transcriptionLatin: 'SubhanAllah',
+      translation: 'Пресвят Аллах',
+    };
+    
+    setSelectedItem(subhanallahItem);
+    setCurrentCount(0); // Начальный счетчик
     setCurrentRounds(0);
     setCounterKey(Date.now().toString());
-    // Используем данные из azkarItems или fallback на статические данные для салаватов
-    const salawatItems = getDhikrItemsByCategory('salawat');
-    const salawatItem = salawatItems[0] || defaultDhikr;
-    setSelectedItem({
-      ...salawatItem,
-      titleRu: `Салаваты после ${prayer}`,
-    });
   };
 
   const handleCountChange = async (count: number, delta: number, rounds: number) => {
     setCurrentCount(count);
     setCurrentRounds(rounds);
+    
+    // Автоматическая смена зикров в режиме последовательности после намаза
+    if (isPrayerSequenceMode && delta > 0) {
+      const remaining = 99 - count; // Осталось до 99
+      
+      // При достижении 33 кликов (осталось 66) -> переключаем на Альхамдулиллах
+      if (count >= 33 && sequenceStage === 0) {
+        const azkarItems = getDhikrItemsByCategory('azkar');
+        const alhamdulillahItem = azkarItems.find(item => item.id === 'azkar-ap-2') || {
+          id: 'azkar-ap-2',
+          category: 'azkar' as const,
+          slug: 'azkar-ap-2',
+          titleAr: 'الْحَمْدُ لِلَّهِ',
+          titleRu: 'Альхамдулиллях',
+          titleEn: 'Alhamdulillah',
+          transcriptionCyrillic: 'Альхамдулиллях',
+          transcriptionLatin: 'Alhamdulillah',
+          translation: 'Хвала Аллаху',
+        };
+        
+        setSelectedItem(alhamdulillahItem);
+        setSequenceStage(1);
+        
+        toast({
+          title: "Переход к следующему зикру",
+          description: "Альхамдулиллях (33 раза)",
+        });
+      }
+      // При достижении 66 кликов (осталось 33) -> переключаем на Аллаху акбар
+      else if (count >= 66 && sequenceStage === 1) {
+        const azkarItems = getDhikrItemsByCategory('azkar');
+        const allahuAkbarItem = azkarItems.find(item => item.id === 'azkar-ap-3') || {
+          id: 'azkar-ap-3',
+          category: 'azkar' as const,
+          slug: 'azkar-ap-3',
+          titleAr: 'اللَّهُ أَكْبَرُ',
+          titleRu: 'Аллаху Акбар',
+          titleEn: 'Allahu Akbar',
+          transcriptionCyrillic: 'Аллаху Акбар',
+          transcriptionLatin: 'Allahu Akbar',
+          translation: 'Аллах Велик',
+        };
+        
+        setSelectedItem(allahuAkbarItem);
+        setSequenceStage(2);
+        
+        toast({
+          title: "Последний зикр",
+          description: "Аллаху Акбар (33 раза)",
+        });
+      }
+      // При достижении 99 кликов -> завершаем последовательность
+      else if (count >= 99 && sequenceStage === 2) {
+        setIsPrayerSequenceMode(false);
+        setSequenceStage(0);
+        
+        toast({
+          title: "Машааллах!",
+          description: "Последовательность завершена (99 раз)",
+        });
+      }
+    }
     
     // Сохранить в API
     if (delta > 0) {
@@ -480,6 +563,10 @@ export default function TasbihPage() {
       currentSessionIdRef.current = null;
     }
 
+    // Выход из режима последовательности при ручном выборе зикра
+    setIsPrayerSequenceMode(false);
+    setSequenceStage(0);
+
     setSelectedItem(item);
     setCurrentCount(0);
     setCurrentRounds(0);
@@ -597,7 +684,13 @@ export default function TasbihPage() {
             initialCount={currentCount}
             initialRounds={currentRounds}
             counterKey={counterKey}
-            targetCount={linkedGoal ? linkedGoal.targetCount - linkedGoal.currentProgress : undefined}
+            targetCount={
+              isPrayerSequenceMode 
+                ? 99 // Обратный отсчет от 99 в режиме последовательности
+                : linkedGoal 
+                  ? linkedGoal.targetCount - linkedGoal.currentProgress 
+                  : undefined
+            }
             onCountChange={handleCountChange}
             onLearnAction={handleLearnAction}
             onComplete={handleComplete}
@@ -610,13 +703,14 @@ export default function TasbihPage() {
           />
         </div>
 
-        {unfinishedSessions.length > 0 && (
-          <div className="px-4 py-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Play className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Незавершенные сессии</span>
-            </div>
-            
+        {/* Незавершенные сессии - обязательно отображаем, даже если пусто */}
+        <div className="px-4 py-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Play className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">Незавершенные сессии</span>
+          </div>
+          
+          {unfinishedSessions.length > 0 ? (
             <div className="space-y-2">
               {unfinishedSessions.map((session: any) => {
                 const dhikrItem = session.category && session.itemId
@@ -665,8 +759,14 @@ export default function TasbihPage() {
                 );
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <Card className="p-4 border-dashed">
+              <p className="text-sm text-muted-foreground text-center">
+                Нет незавершенных сессий
+              </p>
+            </Card>
+          )}
+        </div>
 
         {recentActions.length > 0 && (
           <div className="px-4 py-4 space-y-3">

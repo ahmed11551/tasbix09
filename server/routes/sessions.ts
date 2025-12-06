@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { requireAuth, getUserId } from "../middleware/auth";
 import { z } from "zod";
 import { botReplikaGet, botReplikaPost, botReplikaPatch, getUserIdForApi } from "../lib/bot-replika-api";
+import { logger } from "../lib/logger";
 
 const router = Router();
 router.use(requireAuth);
@@ -46,11 +47,7 @@ router.get("/unfinished", async (req, res, next) => {
       // Продолжаем с локальной БД
     }
   
-  try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Fallback на локальную БД
     const { prisma } = await import("../db-prisma");
     
     // Получить незавершенные сессии (endedAt === null)

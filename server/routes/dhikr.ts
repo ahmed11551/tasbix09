@@ -2,11 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { requireAuth, getUserId } from "../middleware/auth";
 import { z } from "zod";
+import { botReplikaGet, botReplikaPost, getUserIdForApi } from "../lib/bot-replika-api";
+import { logger } from "../lib/logger";
 
 const router = Router();
 router.use(requireAuth);
-
-import { botReplikaGet, botReplikaPost, getUserIdForApi } from "../lib/bot-replika-api";
 
 // Получить каталог дуа и азкаров из Bot.e-replika.ru
 router.get("/catalog", async (req, res, next) => {
