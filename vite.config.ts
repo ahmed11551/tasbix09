@@ -59,10 +59,10 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
-    target: 'esnext',
+    target: 'es2020',
     minify: isProduction,
     cssCodeSplit: false,
-    sourcemap: false,
+    sourcemap: isVercel ? true : false, // Включаем sourcemap на Vercel для дебага
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,

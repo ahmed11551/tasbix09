@@ -26,12 +26,22 @@ if (!rootElement) {
 }
 
 try {
+  // Логирование для дебага на Vercel
+  if (typeof window !== 'undefined') {
+    console.log('[DEBUG] React version:', React.version);
+    console.log('[DEBUG] Starting React mount...');
+  }
+  
   const root = createRoot(rootElement);
   root.render(
     <React.StrictMode>
       <App />
     </React.StrictMode>
   );
+  
+  if (typeof window !== 'undefined') {
+    console.log('[DEBUG] React mounted successfully');
+  }
 } catch (error) {
   // eslint-disable-next-line no-console
   console.error('Failed to render app:', error);
