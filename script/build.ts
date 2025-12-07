@@ -40,15 +40,13 @@ async function buildAll() {
     await rm("dist", { recursive: true, force: true });
   }
 
-  // Генерируем Prisma Client только если не в Vercel (там это делается в postinstall)
-  if (!isVercel) {
-    console.log("generating Prisma client...");
-    const { execSync } = await import("child_process");
-    try {
-      execSync("npx prisma generate", { stdio: "inherit" });
-    } catch (error) {
-      console.warn("Prisma generate failed, continuing anyway:", error);
-    }
+  // Генерируем Prisma Client всегда (включая Vercel для надежности)
+  console.log("generating Prisma client...");
+  const { execSync } = await import("child_process");
+  try {
+    execSync("npx prisma generate", { stdio: "inherit" });
+  } catch (error) {
+    console.warn("Prisma generate failed, continuing anyway:", error);
   }
 
   console.log("building client...");

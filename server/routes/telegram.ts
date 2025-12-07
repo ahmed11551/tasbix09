@@ -78,9 +78,14 @@ router.post("/auth", async (req, res, next) => {
           const existing = await storage.getUser(userId);
           if (!existing) {
             const randomPassword = crypto.randomBytes(32).toString('hex');
-            await prisma.user.create({
-              data: {
-                id: userId,
+            await prisma.user.upsert({
+              where: { username: username },
+              update: {
+                telegramId: String(parsed.id),
+                firstName: parsed.firstName || null,
+              },
+              create: {
+                // id НЕ указываем - Prisma генерирует автоматически
                 username: username,
                 password: await storage.hashPassword(randomPassword),
                 telegramId: String(parsed.id),
@@ -131,9 +136,14 @@ router.post("/auth", async (req, res, next) => {
         ? `tg_${parsed.username}` 
         : `tg_user_${parsed.id}`;
       
-      user = await prisma.user.create({
-        data: {
-          id: telegramId,
+      user = await prisma.user.upsert({
+        where: { username: username },
+        update: {
+          telegramId: String(parsed.id),
+          firstName: parsed.firstName || null,
+        },
+        create: {
+          // id НЕ указываем - Prisma генерирует автоматически
           username: username,
           password: await storage.hashPassword(randomPassword),
           telegramId: String(parsed.id),
