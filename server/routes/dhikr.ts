@@ -6,7 +6,6 @@ import { botReplikaGet, botReplikaPost, getUserIdForApi } from "../lib/bot-repli
 import { logger } from "../lib/logger";
 import { prisma } from "../db-prisma";
 import { updateGroupGoalsProgress } from "../lib/group-goal-sync";
-import { updateGroupGoalsProgress } from "../lib/group-goal-sync";
 
 const router = Router();
 router.use(requireAuth);

@@ -96,31 +96,36 @@ router.post("/register", async (req, res, next) => {
         undefined
       );
       
-      const user = data.user || data;
-      if (!user || !user.id) {
+      const userData = data.user || data;
+      if (userData && typeof userData === 'object' && 'id' in userData) {
+        const userId = String(userData.id);
+        const username = (userData.username && typeof userData.username === 'string') 
+          ? userData.username 
+          : parsed.username;
+        
+        // Синхронизировать с локальной БД (если нужно)
+        try {
+          const existing = await storage.getUserByUsername(parsed.username);
+          if (!existing) {
+            await storage.createUser({ ...parsed, id: userId });
+          }
+        } catch (localError) {
+          // Игнорируем ошибки локальной синхронизации
+          logger.warn("Local user sync failed:", localError);
+        }
+        
+        // Set session
+        req.session!.userId = userId;
+        
+        res.json({ 
+          user: {
+            id: userId,
+            username: username,
+          }
+        });
+      } else {
         return res.status(400).json({ error: "Registration failed" });
       }
-      
-      // Синхронизировать с локальной БД (если нужно)
-      try {
-        const existing = await storage.getUserByUsername(parsed.username);
-        if (!existing) {
-          await storage.createUser({ ...parsed, id: user.id });
-        }
-      } catch (localError) {
-        // Игнорируем ошибки локальной синхронизации
-        logger.warn("Local user sync failed:", localError);
-      }
-      
-      // Set session
-      req.session!.userId = user.id;
-      
-      res.json({ 
-        user: {
-          id: user.id,
-          username: user.username || parsed.username,
-        }
-      });
     } catch (apiError: any) {
       // Fallback на локальную регистрацию
       logger.warn("Bot.e-replika.ru API unavailable, using local registration:", apiError.message);
@@ -160,21 +165,26 @@ router.post("/login", async (req, res, next) => {
         undefined
       );
       
-      const user = data.user || data;
-      if (!user || !user.id) {
+      const userData = data.user || data;
+      if (userData && typeof userData === 'object' && 'id' in userData) {
+        const userId = String(userData.id);
+        const username = (userData.username && typeof userData.username === 'string') 
+          ? userData.username 
+          : parsed.username;
+        
+        // Set session
+        req.session!.userId = userId;
+        
+        res.json({ 
+          user: {
+            id: userId,
+            username: username,
+          },
+          token: data.token,
+        });
+      } else {
         return res.status(401).json({ error: "Invalid credentials" });
       }
-      
-      // Set session
-      req.session!.userId = user.id;
-      
-      res.json({ 
-        user: {
-          id: user.id,
-          username: user.username || parsed.username,
-        },
-        token: data.token,
-      });
     } catch (apiError: any) {
       // Fallback на локальный вход
       logger.warn("Bot.e-replika.ru API unavailable, using local login:", apiError.message);
@@ -229,9 +239,19 @@ router.get("/me", authMiddleware, async (req, res) => {
       apiUserId
     );
     
-    const user = data.user || data;
-    if (user && user.id) {
-      return res.json({ user });
+    const userData = data.user || data;
+    if (userData && typeof userData === 'object' && 'id' in userData) {
+      const userId = String(userData.id);
+      const username = (userData.username && typeof userData.username === 'string') 
+        ? userData.username 
+        : undefined;
+      
+      return res.json({ 
+        user: {
+          id: userId,
+          username: username || (userData as any).username || '',
+        }
+      });
     }
   } catch (apiError: any) {
     // Fallback на локальный профиль
