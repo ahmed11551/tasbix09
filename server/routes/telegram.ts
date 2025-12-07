@@ -68,17 +68,20 @@ router.post("/auth", async (req, res, next) => {
         undefined
       );
       
-      const user = data.user || data;
-      if (user && user.id) {
+      const userData = data.user || data;
+      if (userData && typeof userData === 'object' && 'id' in userData && typeof userData.id === 'string') {
+        const userId = userData.id;
+        const username = (userData.username && typeof userData.username === 'string') ? userData.username : `tg_user_${parsed.id}`;
+        
         // Синхронизировать с локальной БД
         try {
-          const existing = await storage.getUser(user.id);
+          const existing = await storage.getUser(userId);
           if (!existing) {
             const randomPassword = crypto.randomBytes(32).toString('hex');
             await prisma.user.create({
               data: {
-                id: user.id,
-                username: user.username || `tg_user_${parsed.id}`,
+                id: userId,
+                username: username,
                 password: await storage.hashPassword(randomPassword),
                 telegramId: String(parsed.id),
                 firstName: parsed.firstName || null,
@@ -87,7 +90,7 @@ router.post("/auth", async (req, res, next) => {
           } else {
             // Обновить telegramId и firstName если их нет
             await prisma.user.update({
-              where: { id: user.id },
+              where: { id: userId },
               data: {
                 telegramId: String(parsed.id),
                 firstName: parsed.firstName || existing.firstName || null,
@@ -98,12 +101,12 @@ router.post("/auth", async (req, res, next) => {
           logger.warn("Local user sync failed:", localError);
         }
         
-        req.session!.userId = user.id;
+        req.session!.userId = userId;
         
         return res.json({
           user: {
-            id: user.id,
-            username: user.username,
+            id: userId,
+            username: username,
           }
         });
       }
@@ -148,6 +151,10 @@ router.post("/auth", async (req, res, next) => {
       });
       // Обновить объект user для ответа
       user = await storage.getUser(user.id);
+    }
+    
+    if (!user) {
+      return res.status(500).json({ error: "Failed to create or retrieve user" });
     }
     
     req.session!.userId = user.id;

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth, getUserId } from "../middleware/auth";
 import { botReplikaGet, botReplikaPatch, getUserIdForApi } from "../lib/bot-replika-api";
 import { storage } from "../storage";
+import { logger } from "../lib/logger";
 
 const router = Router();
 router.use(requireAuth);

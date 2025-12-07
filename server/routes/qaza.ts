@@ -553,7 +553,7 @@ router.post("/create-goal", requireAuth, async (req, res, next) => {
         status: 'active',
         startDate: new Date(),
         endDate: null, // Без срока
-      });
+      } as any); // user будет добавлен автоматически через connect в storage.createGoal
 
       // Обновить QazaDebt с ID цели
       await prisma.qazaDebt.update({
