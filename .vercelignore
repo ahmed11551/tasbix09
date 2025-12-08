@@ -1,0 +1,13 @@
+# Vercel ignore file
+node_modules
+.git
+.env
+.env.local
+*.log
+dist
+.vercel
+.DS_Store
+attached_assets
+__tests__
+.replit
+
