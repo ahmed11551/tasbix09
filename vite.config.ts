@@ -93,15 +93,37 @@ export default defineConfig({
         warn(warning);
       },
       output: {
+        // Для Vercel - критично правильный порядок загрузки чанков
+        entryFileNames: isVercel ? 'assets/[name].js' : 'assets/[name]-[hash].js',
+        chunkFileNames: isVercel ? 'assets/[name].js' : 'assets/[name]-[hash].js',
+        assetFileNames: isVercel ? 'assets/[name].[ext]' : 'assets/[name]-[hash].[ext]',
         manualChunks: (id) => {
           // Для Docker и Vercel production - упрощенная конфигурация, чтобы избежать проблем с порядком загрузки
           if (isDocker || isVercel) {
             // КРИТИЧНО: React и react-dom ДОЛЖНЫ быть в vendor chunk для правильной загрузки
+            // Используем более точную проверку для Vercel
+            if (isVercel) {
+              if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || 
+                  id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+                return 'vendor';
+              }
+              // Все остальные node_modules в одном chunk
+              if (id.includes('node_modules')) {
+                return 'vendor';
+              }
+              // Страницы в отдельные чанки для lazy loading
+              if (id.includes('/pages/')) {
+                const pageName = id.split('/pages/')[1]?.split('.')[0];
+                return `page-${pageName}`;
+              }
+              return null;
+            }
+            // Для Docker - оригинальная логика
             if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || 
                 id.includes('node_modules/react/index') || id.includes('node_modules/react-dom/index')) {
               return 'vendor';
             }
-            // В Docker и Vercel все vendor библиотеки в одном chunk
+            // В Docker все vendor библиотеки в одном chunk
             if (id.includes('node_modules')) {
               return 'vendor';
             }
