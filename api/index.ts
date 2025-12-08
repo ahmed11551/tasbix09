@@ -5,6 +5,7 @@ import { registerRoutes } from '../server/routes';
 import { errorHandler } from '../server/middleware/error-handler';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
+// @ts-ignore - типы cors доступны через @types/cors в devDependencies
 import cors from 'cors';
 
 // Инициализация Express приложения (singleton для переиспользования между вызовами)

@@ -92,8 +92,9 @@ export class PrismaStorage implements IStorage {
     const hashedPassword = await this.hashPassword(user.password);
     return prisma.user.create({
       data: {
-        ...user,
+        username: user.username,
         password: hashedPassword,
+        // id не указываем - Prisma генерирует автоматически
       },
     });
   }
