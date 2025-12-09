@@ -1,13 +1,43 @@
 // Система локализации и переводов
 
+import { useState, useEffect, useCallback } from 'react';
 import translations, { type Language, type Translations } from './translations';
-import { useLocalization } from '@/hooks/use-localization';
 
 /**
  * Получить перевод для текущего языка
  */
 export function useTranslation() {
-  const { language } = useLocalization();
+  // Используем локальный хук для языка вместо useLocalization, чтобы избежать циклических зависимостей
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ru';
+    
+    try {
+      const stored = localStorage.getItem('smart-tasbih-localization');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.language || 'ru';
+      }
+    } catch (error) {
+      console.error('Failed to load language:', error);
+    }
+    
+    return 'ru';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const stored = localStorage.getItem('smart-tasbih-localization');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setLanguage(parsed.language || 'ru');
+      }
+    } catch (error) {
+      console.error('Failed to load language:', error);
+    }
+  }, []);
+
   const t = translations[language];
 
   /**
