@@ -22,8 +22,9 @@ if (typeof window !== 'undefined') {
   void i18nModule;
 }
 
-// Lazy loading для страниц - уменьшает initial bundle size
-const TasbihPage = lazy(() => import("@/pages/TasbihPage"));
+// КРИТИЧНО: Отключаем lazy loading для TasbihPage, чтобы избежать проблем с i18n
+// Модуль i18n должен быть доступен ДО загрузки страницы
+import TasbihPage from "@/pages/TasbihPage";
 const GoalsPage = lazy(() => import("@/pages/GoalsPage"));
 const ZikryPage = lazy(() => import("@/pages/ZikryPage"));
 const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
