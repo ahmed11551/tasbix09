@@ -116,15 +116,17 @@ export default defineConfig({
             // КРИТИЧНО: i18n модули должны быть в main bundle (index.js) для гарантированной загрузки
             // Это предотвращает ошибки "useTranslation is not defined" при lazy loading страниц
             const normalizedId = id.replace(/\\/g, '/');
-            // Проверяем различные варианты путей к i18n модулю
-            if (normalizedId.includes('/lib/i18n/') || 
+            // Проверяем различные варианты путей к i18n модулю (более широкие проверки)
+            if (normalizedId.includes('/lib/i18n') || 
                 normalizedId.includes('/hooks/use-localization') ||
                 normalizedId.includes('i18n/index') ||
                 normalizedId.includes('i18n/translations') ||
-                normalizedId.endsWith('/lib/i18n/index.ts') ||
-                normalizedId.endsWith('/lib/i18n/index.tsx') ||
-                normalizedId.endsWith('/lib/i18n/index.js') ||
-                normalizedId.includes('client/src/lib/i18n')) {
+                normalizedId.includes('i18n/index.ts') ||
+                normalizedId.includes('i18n/index.tsx') ||
+                normalizedId.includes('i18n/index.js') ||
+                normalizedId.includes('client/src/lib/i18n') ||
+                normalizedId.includes('src/lib/i18n') ||
+                id.includes('i18n')) {
               return null; // null = включить в main bundle (index.js) для гарантированной загрузки
             }
             // КРИТИЧНО: На Vercel React должен быть в main bundle для гарантированной загрузки
