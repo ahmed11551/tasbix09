@@ -10,10 +10,8 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Авторизация отключена - всегда используем userId из заголовка или default-user
+    const userId = getUserId(req) || (req as any).userId || "default-user";
     
     try {
       // Запрос к Bot.e-replika.ru API
@@ -33,10 +31,8 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Авторизация отключена - всегда используем userId из заголовка или default-user
+    const userId = getUserId(req) || (req as any).userId || "default-user";
     
     try {
       const apiUserId = getUserIdForApi(req);
@@ -62,10 +58,8 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Авторизация отключена - всегда используем userId из заголовка или default-user
+    const userId = getUserId(req) || (req as any).userId || "default-user";
     
     try {
       const apiUserId = getUserIdForApi(req);
@@ -89,10 +83,8 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Авторизация отключена - всегда используем userId из заголовка или default-user
+    const userId = getUserId(req) || (req as any).userId || "default-user";
     
     try {
       const apiUserId = getUserIdForApi(req);
@@ -118,10 +110,8 @@ router.patch("/:id", async (req, res, next) => {
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Авторизация отключена - всегда используем userId из заголовка или default-user
+    const userId = getUserId(req) || (req as any).userId || "default-user";
     
     try {
       const apiUserId = getUserIdForApi(req);
