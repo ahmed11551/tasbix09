@@ -40,25 +40,7 @@ import { useDhikrCatalogByCategory } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { prayerLabels } from '@/lib/constants';
 import { useLocalization } from '@/hooks/use-localization';
-// КРИТИЧНО: Используем fallback для useTranslation на случай проблем с загрузкой модуля
-let useTranslationHook: typeof import('@/lib/i18n').useTranslation;
-try {
-  const i18n = require('@/lib/i18n');
-  useTranslationHook = i18n.useTranslation;
-} catch {
-  // Fallback через глобальную переменную
-  useTranslationHook = () => {
-    if (typeof window !== 'undefined' && (window as any).__i18n) {
-      return (window as any).__i18n.useTranslation();
-    }
-    // Последний fallback - возвращаем заглушку
-    return {
-      t: { common: { loading: 'Загрузка...' }, tasbih: {} } as any,
-      language: 'ru' as const,
-      translate: (key: string) => key,
-    };
-  };
-}
+import { useTranslation } from '@/lib/i18n';
 
 interface RecentAction {
   id: string;
