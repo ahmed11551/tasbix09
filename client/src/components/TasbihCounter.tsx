@@ -703,7 +703,7 @@ export default function TasbihCounter({
               {autoIntervalEnabled ? (
                 <>
                   <Pause className="w-4 h-4" />
-                  Остановить авто-тап
+                  {t.tasbih.stopAutoTap}
                 </>
               ) : (
                 <>

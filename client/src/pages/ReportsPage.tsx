@@ -49,7 +49,6 @@ import { useGoals, useStats, useDailyAzkar, useBadges, useCheckBadges, useCatego
 import ActivityHeatmap from '@/components/ActivityHeatmap';
 import { Check, ListChecks } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
-import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { Task, Subtask, Habit, WeekDay } from '@/lib/types';
 import { useData } from '@/context/DataContext';
