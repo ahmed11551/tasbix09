@@ -135,7 +135,7 @@ export default function TasbihPage() {
   const [showTranscription, setShowTranscription] = useState(true);
   const [showTranslation, setShowTranslation] = useState(true);
   const [showAudioPlayer, setShowAudioPlayer] = useState(true);
-  const [transcriptionType, setTranscriptionType] = useState<TranscriptionType>('cyrillic');
+  const { transcriptionType, setTranscriptionType } = useLocalization();
   const [recentActions, setRecentActions] = useState<RecentAction[]>([]);
   // Состояние для автоматической последовательности зикров после намаза
   const [isPrayerSequenceMode, setIsPrayerSequenceMode] = useState(false);
