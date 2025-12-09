@@ -40,15 +40,7 @@ import { useDhikrCatalogByCategory } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { prayerLabels } from '@/lib/constants';
 import { useLocalization } from '@/hooks/use-localization';
-// КРИТИЧНО: Используем глобальный доступ к i18n как fallback
 import { useTranslation } from '@/lib/i18n';
-// Fallback для случаев, когда модуль еще не загружен
-const getUseTranslation = () => {
-  if (typeof window !== 'undefined' && (window as any).__i18n) {
-    return (window as any).__i18n.useTranslation;
-  }
-  return useTranslation;
-};
 
 interface RecentAction {
   id: string;
