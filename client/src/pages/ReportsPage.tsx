@@ -48,6 +48,7 @@ import { prayerLabels } from '@/lib/constants';
 import { useGoals, useStats, useDailyAzkar, useBadges, useCheckBadges, useCategoryStreaks, useActivityHeatmap } from '@/hooks/use-api';
 import ActivityHeatmap from '@/components/ActivityHeatmap';
 import { Check, ListChecks } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { Task, Subtask, Habit, WeekDay } from '@/lib/types';
 import { useData } from '@/context/DataContext';

@@ -139,7 +139,7 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast({ title: "Скопировано" });
+    toast({ title: t.zikry.copied });
   };
 
   const handleShare = async () => {
@@ -153,7 +153,7 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
         if (error.name !== 'AbortError') {
           // Для других ошибок - используем fallback на clipboard
           await navigator.clipboard.writeText(text);
-          toast({ title: "Скопировано для отправки" });
+          toast({ title: t.zikry.copiedForSharing });
         }
       }
     } else {
@@ -193,21 +193,21 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
             </div>
 
             <Card className="p-4 bg-muted/30">
-              <h4 className="text-sm font-medium mb-2">Перевод</h4>
+              <h4 className="text-sm font-medium mb-2">{t.zikry.translation}</h4>
               <p className="text-sm text-muted-foreground">{item.translation}</p>
             </Card>
 
             {item.source && (
               <div className="text-center">
                 <Badge variant="outline" className="text-xs">
-                  Источник: {item.source}
+                  {t.zikry.source} {item.source}
                 </Badge>
               </div>
             )}
 
             {item.benefits && (
               <Card className="p-4 bg-primary/5 border-primary/20">
-                <h4 className="text-sm font-medium mb-2 text-primary">Достоинство</h4>
+                <h4 className="text-sm font-medium mb-2 text-primary">{t.zikry.benefit}</h4>
                 <p className="text-sm text-muted-foreground">{item.benefits}</p>
               </Card>
             )}
@@ -242,7 +242,7 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
               data-testid="button-start-tasbih"
             >
               <Play className="w-4 h-4" />
-              Начать тасбих
+              {t.zikry.startTasbih}
             </Button>
           )}
         </div>
@@ -366,7 +366,7 @@ export default function ZikryPage() {
             {searchQuery ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Найдено: {searchResults.length}
+                  {t.zikry.found} {searchResults.length}
                 </p>
                 {searchResults.map((item, index) => (
                   <ZikrItemCard
@@ -382,7 +382,7 @@ export default function ZikryPage() {
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'categories' | 'favorites')}>
                   <TabsList className="w-full mb-4">
                     <TabsTrigger value="categories" className="flex-1">{t.zikry.categories}</TabsTrigger>
-                    <TabsTrigger value="favorites" className="flex-1">Любимое</TabsTrigger>
+                    <TabsTrigger value="favorites" className="flex-1">{t.zikry.favorites}</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="categories" className="space-y-4">
@@ -397,7 +397,7 @@ export default function ZikryPage() {
                             {getIconByName("Sparkles", "w-5 h-5 text-primary")}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-primary font-medium">Сегодняшний Dua</p>
+                            <p className="text-xs text-primary font-medium">{t.zikry.todayDua}</p>
                             <p className="text-sm truncate">{todayZikr.titleRu}</p>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />

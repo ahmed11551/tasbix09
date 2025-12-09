@@ -485,7 +485,7 @@ export default function TasbihCounter({
                 data-testid="button-reset-learn"
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
-                Сбросить
+                {t.tasbih.reset}
               </Button>
             )}
           </div>
@@ -495,7 +495,7 @@ export default function TasbihCounter({
         <>
           <div className="relative flex items-center justify-center gap-3 w-full">
             <div className="flex flex-col items-center gap-1.5">
-              <span className="text-[10px] text-muted-foreground">Цель</span>
+              <span className="text-[10px] text-muted-foreground">{t.tasbih.goal}</span>
               {goalButtons.slice(0, 3).map((target) => (
                 <Button
                   key={target}
@@ -523,7 +523,7 @@ export default function TasbihCounter({
                 isAnimating && "animate-tap-pulse"
               )}
               data-testid="button-tap-counter"
-              aria-label={`Счетчик: ${displayCount}`}
+              aria-label={`${t.tasbih.counter}: ${displayCount}`}
             >
               <svg className="absolute inset-0 w-full h-full -rotate-90">
                 <circle
@@ -559,7 +559,7 @@ export default function TasbihCounter({
                 </span>
                 {goalTarget && (
                   <span className="text-[10px] text-primary-foreground/80 mt-0.5">
-                    осталось из {goalTarget}
+                    {t.tasbih.leftOf} {goalTarget}
                   </span>
                 )}
               </div>
@@ -579,7 +579,7 @@ export default function TasbihCounter({
                 </span>
               </div>
               <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                кругов
+                {t.tasbih.rounds}
               </span>
               {goalButtons.slice(3).map((target) => (
                 <Button
@@ -631,7 +631,7 @@ export default function TasbihCounter({
                 onClick={() => setGoalTarget(null)}
                 className="text-xs text-muted-foreground"
               >
-                Убрать цель
+                {t.tasbih.removeGoal}
               </Button>
             )}
             
@@ -653,7 +653,7 @@ export default function TasbihCounter({
           {isGoalComplete && (
             <div className="text-center animate-fade-in">
               <p className="text-lg font-semibold text-primary">
-                Машааллах! Цель достигнута!
+                {t.tasbih.goalCompletedMessage}
               </p>
             </div>
           )}
@@ -662,7 +662,7 @@ export default function TasbihCounter({
           <Card className="p-3 mt-4 space-y-3 border-primary/20">
             <div className="flex items-center gap-2">
               <Timer className="w-4 h-4 text-primary" />
-              <Label className="text-sm font-medium">Задать автоинтервал (сек)</Label>
+              <Label className="text-sm font-medium">{t.tasbih.autoInterval}</Label>
             </div>
             
             <div className="flex items-center gap-2">
@@ -681,7 +681,7 @@ export default function TasbihCounter({
                 className="w-20"
                 data-testid="input-auto-interval"
               />
-              <span className="text-xs text-muted-foreground">от 1 до 60 сек</span>
+              <span className="text-xs text-muted-foreground">{t.tasbih.from1To60Sec}</span>
             </div>
 
             <Button

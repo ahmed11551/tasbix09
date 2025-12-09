@@ -11,6 +11,7 @@ import TelegramAuth from "@/components/TelegramAuth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { SkipToMain } from "@/components/ui/skip-to-main";
 import NotFound from "@/pages/not-found";
+import { useTranslation } from "@/lib/i18n";
 
 // Lazy loading для страниц - уменьшает initial bundle size
 const TasbihPage = lazy(() => import("@/pages/TasbihPage"));
@@ -21,11 +22,14 @@ const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const QazaCalculatorPage = lazy(() => import("@/pages/QazaCalculatorPage"));
 
 // Loading компонент
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-muted-foreground">Загрузка...</div>
-  </div>
-);
+const PageLoader = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-muted-foreground">{t.common.loading}</div>
+    </div>
+  );
+};
 
 function Router() {
   return (
