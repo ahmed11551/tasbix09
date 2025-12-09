@@ -38,6 +38,7 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'categories' | 'recent' | 'goals'>('categories');
   const { data: goals = [] } = useGoals();
+  const { t } = useTranslation();
 
   // Фильтрация по категории и поиску
   const filteredItems = useMemo(() => {
@@ -77,7 +78,7 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
                 {selectedItem.titleRu}
               </TextWithTooltip>
             ) : (
-              <span className="text-muted-foreground">Выберите зикр...</span>
+              <span className="text-muted-foreground">{t.tasbih.selectDhikr}</span>
             )}
             <ChevronDown className="w-4 h-4 shrink-0" />
           </Button>
@@ -86,13 +87,13 @@ export default function DhikrSelector({ selectedItem, onSelect, trigger }: Dhikr
       
       <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
         <SheetHeader className="pb-2">
-          <SheetTitle>Выбор зикра</SheetTitle>
+          <SheetTitle>{t.tasbih.selectDhikr}</SheetTitle>
         </SheetHeader>
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск..."
+            placeholder={t.common.search}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"

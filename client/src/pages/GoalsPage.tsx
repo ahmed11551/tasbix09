@@ -87,6 +87,7 @@ import {
   useUpdateSession,
 } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { GoalsListSkeleton, HabitsListSkeleton, TasksListSkeleton } from '@/components/ui/loading-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -520,6 +521,7 @@ export default function GoalsPage() {
   const searchParams = new URLSearchParams(searchString);
   const highlightHabitId = searchParams.get('highlightHabit');
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   // API hooks
   const queryClient = useQueryClient();
@@ -733,22 +735,22 @@ export default function GoalsPage() {
         await updateHabit(editingHabit.id, habitData);
         setEditingHabit(null);
         toast({
-          title: "Привычка обновлена",
-          description: "Изменения сохранены",
+          title: t.habits.habitUpdated,
+          description: t.common.success,
         });
       } else {
         await addHabit(habitData);
         toast({
-          title: "Привычка создана",
-          description: "Новая привычка добавлена",
+          title: t.habits.habitCreated,
+          description: t.common.success,
         });
       }
       setSelectedTemplate(null);
       setHabitSheetOpen(false);
     } catch (error) {
       toast({
-        title: "Ошибка",
-        description: error instanceof Error ? error.message : "Не удалось сохранить привычку",
+        title: t.common.error,
+        description: error instanceof Error ? error.message : t.habits.errorCreatingHabit,
         variant: "destructive",
       });
     }
@@ -769,14 +771,14 @@ export default function GoalsPage() {
       try {
         await deleteHabit(habitToDelete);
         toast({
-          title: "Привычка удалена",
-          description: "Привычка успешно удалена",
+          title: t.habits.habitDeleted,
+          description: t.common.success,
         });
         setHabitToDelete(null);
       } catch (error) {
         toast({
-          title: "Ошибка",
-          description: "Не удалось удалить привычку",
+          title: t.common.error,
+          description: t.habits.errorDeletingHabit,
           variant: "destructive",
         });
       }
@@ -808,16 +810,16 @@ export default function GoalsPage() {
       if (editingGoal) {
         await updateGoalMutation.mutateAsync({ id: editingGoal.id, data: goalPayload });
         toast({
-          title: "Цель обновлена",
-          description: "Изменения успешно сохранены",
+          title: t.goals.goalUpdated,
+          description: t.common.success,
           duration: 3000,
         });
         setEditingGoal(null);
       } else {
         await createGoalMutation.mutateAsync(goalPayload);
         toast({
-          title: "Цель создана",
-          description: "Новая цель успешно добавлена",
+          title: t.goals.goalCreated,
+          description: t.common.success,
           duration: 3000,
           className: "border-l-4 border-l-green-500",
         });
@@ -832,15 +834,15 @@ export default function GoalsPage() {
       if (error?.status === 403 && error?.responseData?.upgradeRequired) {
         const errorData = error.responseData;
         toast({
-          title: "Достигнут лимит целей",
-          description: errorData.message || `Вы достигли лимита активных целей (${errorData.current}/${errorData.limit}). Перейдите на более высокий тариф для создания большего количества целей.`,
+          title: t.goals.goalLimitReached,
+          description: errorData.message || t.goals.goalLimitReached,
           variant: "destructive",
           duration: 8000,
         });
       } else {
         toast({
-          title: "Ошибка",
-          description: error instanceof Error ? error.message : "Не удалось сохранить цель",
+          title: t.common.error,
+          description: error instanceof Error ? error.message : t.goals.errorCreatingGoal,
           variant: "destructive",
         });
       }
@@ -864,13 +866,13 @@ export default function GoalsPage() {
         data: { status: 'paused' },
       });
       toast({
-        title: "Цель приостановлена",
-        description: "Цель временно приостановлена. Вы можете возобновить её позже.",
+        title: t.goals.goalPaused,
+        description: t.goals.goalPaused,
       });
     } catch (error) {
       toast({
-        title: "Ошибка",
-        description: "Не удалось приостановить цель",
+        title: t.common.error,
+        description: t.goals.errorUpdatingGoal,
         variant: "destructive",
       });
     }
@@ -883,13 +885,13 @@ export default function GoalsPage() {
         data: { status: 'active' },
       });
       toast({
-        title: "Цель возобновлена",
-        description: "Цель снова активна.",
+        title: t.goals.goalResumed,
+        description: t.goals.goalResumed,
       });
     } catch (error) {
       toast({
-        title: "Ошибка",
-        description: "Не удалось возобновить цель",
+        title: t.common.error,
+        description: t.goals.errorUpdatingGoal,
         variant: "destructive",
       });
     }

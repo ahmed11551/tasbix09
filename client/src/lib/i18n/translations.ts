@@ -20,6 +20,7 @@ export interface Translations {
     loading: string;
     error: string;
     success: string;
+    cannotUndo: string;
   };
 
   // Навигация
@@ -229,6 +230,7 @@ const translations: Record<Language, Translations> = {
       loading: 'Загрузка...',
       error: 'Ошибка',
       success: 'Успешно',
+      cannotUndo: 'Это действие нельзя отменить',
     },
     navigation: {
       tasbih: 'Тасбих',
@@ -413,6 +415,7 @@ const translations: Record<Language, Translations> = {
       loading: 'Loading...',
       error: 'Error',
       success: 'Success',
+      cannotUndo: 'This action cannot be undone',
     },
     navigation: {
       tasbih: 'Tasbih',
@@ -597,6 +600,7 @@ const translations: Record<Language, Translations> = {
       loading: 'جاري التحميل...',
       error: 'خطأ',
       success: 'نجح',
+      cannotUndo: 'لا يمكن التراجع عن هذا الإجراء',
     },
     navigation: {
       tasbih: 'تسبيح',
