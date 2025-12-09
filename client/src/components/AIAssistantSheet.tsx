@@ -303,6 +303,9 @@ export default function AIAssistantSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl p-0">
+        <SheetHeader className="sr-only">
+          <SheetTitle>AI Assistant</SheetTitle>
+        </SheetHeader>
         {content}
       </SheetContent>
     </Sheet>
