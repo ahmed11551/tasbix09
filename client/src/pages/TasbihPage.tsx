@@ -40,8 +40,8 @@ import { useDhikrCatalogByCategory } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { prayerLabels } from '@/lib/constants';
 import { useLocalization } from '@/hooks/use-localization';
-// КРИТИЧНО: Используем прямой доступ к глобальной переменной для обхода проблем с chunking
-// Это гарантирует, что модуль доступен, даже если vendor chunk еще не загружен
+// ВРЕМЕННО: Локализация отключена из-за проблем с chunking
+// TODO: Восстановить после исправления проблемы с загрузкой модулей
 
 interface RecentAction {
   id: string;
