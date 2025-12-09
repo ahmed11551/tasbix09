@@ -540,6 +540,8 @@ const translations: Record<Language, Translations> = {
       favorites: 'Favorites',
       found: 'Found:',
       total: 'Total:',
+      noFavorites: 'No Favorite Zikr',
+      noFavoritesDescription: 'Click the heart icon on a zikr to add it to favorites',
     },
     reports: {
       title: 'Reports',
@@ -547,6 +549,10 @@ const translations: Record<Language, Translations> = {
       streaks: 'Streaks',
       badges: 'Badges',
       activity: 'Activity',
+      today: 'Today',
+      achievements: 'Achievements',
+      history: 'History',
+      loadMore: 'Load More',
     },
     categories: {
       general: 'General',
@@ -752,6 +758,8 @@ const translations: Record<Language, Translations> = {
       favorites: 'المفضلة',
       found: 'تم العثور على:',
       total: 'المجموع:',
+      noFavorites: 'لا توجد أذكار مفضلة',
+      noFavoritesDescription: 'انقر على أيقونة القلب على الذكر لإضافته إلى المفضلة',
     },
     reports: {
       title: 'التقارير',
@@ -759,6 +767,10 @@ const translations: Record<Language, Translations> = {
       streaks: 'السلاسل',
       badges: 'الشارات',
       activity: 'النشاط',
+      today: 'اليوم',
+      achievements: 'الإنجازات',
+      history: 'التاريخ',
+      loadMore: 'تحميل المزيد',
     },
     categories: {
       general: 'عام',

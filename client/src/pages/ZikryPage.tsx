@@ -414,7 +414,7 @@ export default function ZikryPage() {
                         data-testid="button-favorites-quick"
                       >
                         <Heart className="w-4 h-4" />
-                        Любимое
+                        {t.zikry.favorites}
                       </Button>
                       <Button
                         variant="ghost"
@@ -424,7 +424,7 @@ export default function ZikryPage() {
                         data-testid="button-share-quick"
                       >
                         <Share2 className="w-4 h-4" />
-                        Поделиться
+                        {t.zikry.share}
                       </Button>
                     </div>
 
@@ -442,8 +442,8 @@ export default function ZikryPage() {
                   <TabsContent value="favorites">
                     <EmptyState
                       icon={Heart}
-                      title="Нет избранных зикров"
-                      description="Нажмите на сердечко у зикра, чтобы добавить его в избранное"
+                      title={t.zikry.noFavorites}
+                      description={t.zikry.noFavoritesDescription}
                     />
                   </TabsContent>
                 </Tabs>
