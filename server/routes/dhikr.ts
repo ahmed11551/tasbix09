@@ -204,10 +204,21 @@ router.post("/logs", async (req, res, next) => {
     }
     
     const logData = req.body;
+    
+    // Базовая валидация обязательных полей
+    if (!logData) {
+      return res.status(400).json({ error: "Invalid input", message: "Request body is required" });
+    }
+    
+    // Проверяем, что delta - это число (или 0)
+    if (logData.delta !== undefined && typeof logData.delta !== 'number') {
+      return res.status(400).json({ error: "Invalid input", message: "delta must be a number" });
+    }
+    
     const category = logData.category;
     const itemId = logData.itemId;
     const delta = logData.delta || 0;
-    const eventType = logData.eventType;
+    const eventType = logData.eventType || 'tap'; // Значение по умолчанию
     const sessionId = logData.sessionId;
     const prayerSegment = logData.prayerSegment || 'none';
     const valueAfter = logData.valueAfter || 0;

@@ -91,29 +91,50 @@ router.post("/", async (req, res, next) => {
     // Авторизация отключена - всегда используем userId из заголовка или default-user
     const userId = getUserId(req) || (req as any).userId || "default-user";
     
+    // Проверяем флаг принудительного применения лимита
+    const shouldEnforceLimit = process.env.ENFORCE_GOAL_LIMIT === 'true';
+    
     try {
       const apiUserId = getUserIdForApi(req);
       const data = await botReplikaPost<{ goal?: unknown; error?: string }>("/api/goals", req.body, apiUserId);
       
-      if (data.error) {
+      // Если API вернул ошибку лимита, но мы не принуждаем лимит - игнорируем и создаем локально
+      if (data.error && data.error === "Goal limit reached") {
+        if (shouldEnforceLimit) {
+          return res.status(403).json(data);
+        } else {
+          // Игнорируем ошибку лимита от API и создаем локально
+          logger.warn(`Bot.e-replika.ru API returned goal limit, but ENFORCE_GOAL_LIMIT is not set. Creating locally for user ${userId}`);
+          // Продолжаем выполнение - переходим к локальному созданию
+        }
+      } else if (data.error) {
+        // Для других ошибок возвращаем их как есть
         return res.status(403).json(data);
+      } else {
+        // Успешное создание через API
+        const goal = data.goal || data;
+        return res.status(201).json({ goal });
       }
-      
-      const goal = data.goal || data;
-      res.status(201).json({ goal });
     } catch (apiError: any) {
-      // Если ошибка лимита от API, вернуть её
+      // Если ошибка лимита от API, но мы не принуждаем лимит - игнорируем
       if (apiError.message?.includes("limit") || apiError.message?.includes("403")) {
         try {
           const errorData = JSON.parse(apiError.message.split(" - ")[1] || "{}");
           if (errorData.error === "Goal limit reached") {
-            return res.status(403).json(errorData);
+            if (shouldEnforceLimit) {
+              return res.status(403).json(errorData);
+            } else {
+              logger.warn(`Bot.e-replika.ru API limit error ignored (ENFORCE_GOAL_LIMIT not set). Creating locally for user ${userId}`);
+              // Продолжаем выполнение - переходим к локальному созданию
+            }
           }
         } catch {}
       }
       
       // Fallback: проверка лимита и создание в локальной БД
-      logger.warn("Bot.e-replika.ru API unavailable, using local DB:", apiError.message);
+      if (!apiError.message?.includes("limit")) {
+        logger.warn("Bot.e-replika.ru API unavailable, using local DB:", apiError.message);
+      }
       
       // Убедиться, что пользователь существует в БД
       const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -129,8 +150,7 @@ router.post("/", async (req, res, next) => {
       }
       
       const limitCheck = await checkGoalLimit(userId);
-      // В Docker всегда разрешаем обходить лимит для тестирования (можно отключить через ENFORCE_GOAL_LIMIT=true)
-      const shouldEnforceLimit = process.env.ENFORCE_GOAL_LIMIT === 'true';
+      // shouldEnforceLimit уже объявлен выше (строка 95)
       
       if (!limitCheck.allowed && shouldEnforceLimit) {
         return res.status(403).json({
