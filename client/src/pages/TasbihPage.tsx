@@ -40,28 +40,6 @@ import { useDhikrCatalogByCategory } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { prayerLabels } from '@/lib/constants';
 import { useLocalization } from '@/hooks/use-localization';
-// КРИТИЧНО: Используем fallback через глобальную переменную, если импорт не работает
-let useTranslationHook: typeof import('@/lib/i18n').useTranslation;
-try {
-  // Прямой импорт
-  const i18n = await import('@/lib/i18n');
-  useTranslationHook = i18n.useTranslation;
-} catch {
-  // Fallback через глобальную переменную
-  useTranslationHook = () => {
-    if (typeof window !== 'undefined' && (window as any).__i18n) {
-      return (window as any).__i18n.useTranslation();
-    }
-    // Заглушка на случай, если ничего не работает
-    return {
-      t: { common: { loading: 'Загрузка...' }, tasbih: {} } as any,
-      language: 'ru' as const,
-      translate: (key: string) => key,
-    };
-  };
-}
-
-// Синхронный импорт для совместимости
 import { useTranslation } from '@/lib/i18n';
 
 interface RecentAction {
