@@ -7,17 +7,19 @@ import {
   BarChart3,
   Settings
 } from 'lucide-react';
-
-const navItems = [
-  { path: '/', icon: Circle, label: 'Тасбих' },
-  { path: '/goals', icon: Target, label: 'Цели' },
-  { path: '/zikry', icon: BookMarked, label: 'Зикры' },
-  { path: '/reports', icon: BarChart3, label: 'Отчёты' },
-  { path: '/settings', icon: Settings, label: 'Настройки' },
-];
+import { useTranslation } from '@/lib/i18n';
 
 export default function BottomNav() {
   const [location] = useLocation();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { path: '/', icon: Circle, label: t.navigation.tasbih },
+    { path: '/goals', icon: Target, label: t.navigation.goals },
+    { path: '/zikry', icon: BookMarked, label: t.navigation.zikry },
+    { path: '/reports', icon: BarChart3, label: t.navigation.reports },
+    { path: '/settings', icon: Settings, label: t.navigation.settings },
+  ];
 
   return (
     <nav 
@@ -39,7 +41,7 @@ export default function BottomNav() {
                     ? "text-primary" 
                     : "text-muted-foreground"
                 )}
-                data-testid={`nav-${label.toLowerCase()}`}
+                data-testid={`nav-${path.replace('/', '') || 'home'}`}
               >
                 <Icon 
                   className={cn(
