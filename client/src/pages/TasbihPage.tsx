@@ -53,13 +53,7 @@ interface RecentAction {
 
 export default function TasbihPage() {
   const { toast } = useToast();
-  // КРИТИЧНО: Используем глобальную переменную как приоритетный источник
-  // Глобальная переменная устанавливается в main.tsx ДО рендера App
-  // Это гарантирует, что модуль доступен, даже если vendor chunk еще не загружен
-  // React хуки должны вызываться безусловно, поэтому используем прямое обращение к глобальной переменной
-  const { t } = (typeof window !== 'undefined' && (window as any).__i18n?.useTranslation) 
-    ? (window as any).__i18n.useTranslation()
-    : useTranslation();
+  const { t } = useTranslation();
   const [location] = useLocation();
   const { data: goals = [] } = useGoals();
   const { data: qazaDebt } = useQazaDebt();

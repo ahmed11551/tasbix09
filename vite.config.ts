@@ -122,6 +122,7 @@ export default defineConfig({
                 normalizedId.includes('use-localization') ||
                 normalizedId.includes('/lib/i18n') || 
                 normalizedId.includes('/hooks/use-localization') ||
+                normalizedId.includes('i18n-hook') ||
                 id.includes('i18n')) {
               return null; // null = включить в main bundle (index.js) для гарантированной загрузки
             }

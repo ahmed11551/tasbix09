@@ -8,6 +8,8 @@ import { initSentry } from "./lib/sentry";
 // Это предотвращает ошибки "useTranslation is not defined" при lazy loading страниц
 import "@/lib/i18n";
 import * as i18nModule from "@/lib/i18n";
+// Импортируем обертку для гарантии включения в bundle
+import "@/lib/i18n-hook";
 // КРИТИЧНО: Устанавливаем глобальную переменную ДО рендера App
 if (typeof window !== 'undefined') {
   (window as any).__i18n = i18nModule;
