@@ -125,6 +125,11 @@ export default function ReportsPage() {
       todayTab: 'Сегодня',
       achievementsTab: 'Достижения',
       historyTab: 'История',
+      executed: 'Выполнено',
+      percentCompletion: '% выполнения',
+      whatToDoNow: 'Что делать сейчас',
+      completeTodayHabits: 'Выполнить сегодняшние привычки',
+      left: 'Осталось',
     },
     common: { loading: 'Загрузка...', error: 'Ошибка', success: 'Успешно' },
   } as any;
