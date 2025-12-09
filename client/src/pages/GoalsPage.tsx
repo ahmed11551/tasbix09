@@ -1714,15 +1714,15 @@ export default function GoalsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить привычку?</AlertDialogTitle>
+            <AlertDialogTitle>{t.goals.confirmDeleteHabit}</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить. Вся история выполнения будет удалена.
+              {t.common.cannotUndo}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteHabit} className="bg-destructive text-destructive-foreground">
-              Удалить
+              {t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1731,15 +1731,15 @@ export default function GoalsPage() {
       <AlertDialog open={taskDeleteDialogOpen} onOpenChange={setTaskDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить задачу?</AlertDialogTitle>
+            <AlertDialogTitle>{t.goals.confirmDeleteTask}</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить.
+              {t.common.cannotUndo}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteTask} className="bg-destructive text-destructive-foreground">
-              Удалить
+              {t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1762,15 +1762,15 @@ export default function GoalsPage() {
       <AlertDialog open={goalDeleteDialogOpen} onOpenChange={setGoalDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить цель?</AlertDialogTitle>
+            <AlertDialogTitle>{t.goals.confirmDeleteGoal}</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить. Весь прогресс по цели будет удален.
+              {t.common.cannotUndo}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteGoal} className="bg-destructive text-destructive-foreground">
-              Удалить
+              {t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1779,15 +1779,15 @@ export default function GoalsPage() {
       <AlertDialog open={sessionDeleteDialogOpen} onOpenChange={setSessionDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить незавершенную сессию?</AlertDialogTitle>
+            <AlertDialogTitle>{t.goals.confirmDeleteSession}</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить. Сессия будет завершена и удалена из списка незавершенных.
+              {t.common.cannotUndo}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteSession} className="bg-destructive text-destructive-foreground">
-              Удалить
+              {t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -267,6 +267,7 @@ const translations: Record<Language, Translations> = {
     tasbih: {
       title: 'Тасбих',
       selectDhikr: 'Выберите зикр...',
+      quickSelect: 'Быстрый выбор',
       rounds: 'Кругов',
       count: 'Счёт',
       reset: 'Сбросить',
@@ -452,6 +453,7 @@ const translations: Record<Language, Translations> = {
     tasbih: {
       title: 'Tasbih',
       selectDhikr: 'Select dhikr...',
+      quickSelect: 'Quick Select',
       rounds: 'Rounds',
       count: 'Count',
       reset: 'Reset',
@@ -637,6 +639,7 @@ const translations: Record<Language, Translations> = {
     tasbih: {
       title: 'تسبيح',
       selectDhikr: 'اختر ذكراً...',
+      quickSelect: 'اختيار سريع',
       rounds: 'جولات',
       count: 'العدد',
       reset: 'إعادة تعيين',

@@ -767,7 +767,7 @@ export default function TasbihPage() {
         </div>
 
         <div className="px-4 mb-4 space-y-1.5">
-          <span className="text-xs text-muted-foreground font-medium">Быстрый выбор</span>
+          <span className="text-xs text-muted-foreground font-medium">{t.tasbih.quickSelect}</span>
           <DhikrSelector
             selectedItem={selectedItem}
             onSelect={handleDhikrSelect}
