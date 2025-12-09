@@ -160,7 +160,7 @@ export default function SettingsPage() {
                 <Globe className="w-5 h-5 text-muted-foreground" />
                 <span>Язык</span>
               </div>
-              <Select value={language} onValueChange={setLanguage}>
+              <Select value={language} onValueChange={(value) => setLanguage(value as 'ru' | 'en' | 'ar')}>
                 <SelectTrigger className="w-32" data-testid="select-language">
                   <SelectValue />
                 </SelectTrigger>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
                 <Sparkles className="w-5 h-5 text-muted-foreground" />
                 <span>Транскрипция</span>
               </div>
-              <Select value={transcriptionType} onValueChange={setTranscriptionType}>
+              <Select value={transcriptionType} onValueChange={(value) => setTranscriptionType(value as 'cyrillic' | 'latin')}>
                 <SelectTrigger className="w-32" data-testid="select-transcription">
                   <SelectValue />
                 </SelectTrigger>

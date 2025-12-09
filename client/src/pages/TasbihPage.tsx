@@ -734,14 +734,14 @@ export default function TasbihPage() {
                         <Button
                           variant={transcriptionType === 'cyrillic' ? 'default' : 'secondary'}
                           size="sm"
-                          onClick={() => setTranscriptionType('cyrillic')}
+                          onClick={() => setTranscriptionType('cyrillic' as 'cyrillic')}
                         >
                           Кириллица
                         </Button>
                         <Button
                           variant={transcriptionType === 'latin' ? 'default' : 'secondary'}
                           size="sm"
-                          onClick={() => setTranscriptionType('latin')}
+                          onClick={() => setTranscriptionType('latin' as 'latin')}
                         >
                           Латиница
                         </Button>
