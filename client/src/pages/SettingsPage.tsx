@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import ProfileSheet from '@/components/ProfileSheet';
 import NotificationSettingsSheet from '@/components/NotificationSettingsSheet';
 import { useLocalization } from '@/hooks/use-localization';
+import { useTranslation } from '@/lib/i18n';
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -36,6 +37,7 @@ export default function SettingsPage() {
   const [hapticFeedback, setHapticFeedback] = useState(true);
   const [soundEffects, setSoundEffects] = useState(false);
   const { language, transcriptionType, setLanguage, setTranscriptionType } = useLocalization();
+  const { t } = useTranslation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
 
@@ -52,7 +54,7 @@ export default function SettingsPage() {
     <div id="main-content" tabIndex={-1} className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between px-4 h-14 max-w-md mx-auto">
-          <h1 className="font-display font-semibold text-lg">Настройки</h1>
+          <h1 className="font-display font-semibold text-lg">{t.settings.title}</h1>
         </div>
       </header>
 
@@ -73,7 +75,7 @@ export default function SettingsPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground px-1">Профиль</h2>
+          <h2 className="text-sm font-medium text-muted-foreground px-1">{t.settings.profile}</h2>
           <Card className="divide-y divide-border">
             <button 
               className="flex items-center gap-4 p-4 w-full hover-elevate" 
@@ -84,8 +86,8 @@ export default function SettingsPage() {
                 <User className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium">Мой профиль</p>
-                <p className="text-sm text-muted-foreground">Имя, часовой пояс, мазхаб</p>
+                <p className="font-medium">{t.settings.myProfile}</p>
+                <p className="text-sm text-muted-foreground">{t.settings.name}, {t.settings.timezone}, {t.settings.madhab}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -93,7 +95,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground px-1">Приложение</h2>
+          <h2 className="text-sm font-medium text-muted-foreground px-1">{t.settings.app}</h2>
           <Card className="divide-y divide-border">
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
@@ -102,7 +104,7 @@ export default function SettingsPage() {
                 ) : (
                   <Sun className="w-5 h-5 text-muted-foreground" />
                 )}
-                <Label htmlFor="dark-mode">Тёмная тема</Label>
+                <Label htmlFor="dark-mode">{t.settings.darkMode}</Label>
               </div>
               <Switch
                 id="dark-mode"
@@ -119,7 +121,7 @@ export default function SettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <Bell className="w-5 h-5 text-muted-foreground" />
-                <Label htmlFor="notifications" className="cursor-pointer">Умные уведомления</Label>
+                <Label htmlFor="notifications" className="cursor-pointer">{t.settings.notifications}</Label>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -127,7 +129,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Vibrate className="w-5 h-5 text-muted-foreground" />
-                <Label htmlFor="haptic">Вибрация при тапе</Label>
+                <Label htmlFor="haptic">{t.settings.hapticFeedback}</Label>
               </div>
               <Switch
                 id="haptic"
@@ -140,7 +142,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Volume2 className="w-5 h-5 text-muted-foreground" />
-                <Label htmlFor="sounds">Звуковые эффекты</Label>
+                <Label htmlFor="sounds">{t.settings.soundEffects}</Label>
               </div>
               <Switch
                 id="sounds"
@@ -153,21 +155,21 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground px-1">Локализация</h2>
+          <h2 className="text-sm font-medium text-muted-foreground px-1">{t.settings.localization}</h2>
           <Card className="divide-y divide-border">
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Globe className="w-5 h-5 text-muted-foreground" />
-                <span>Язык</span>
+                <span>{t.settings.language}</span>
               </div>
               <Select value={language} onValueChange={(value) => setLanguage(value as 'ru' | 'en' | 'ar')}>
                 <SelectTrigger className="w-32" data-testid="select-language">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ru">Русский</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="ar">العربية</SelectItem>
+                  <SelectItem value="ru">{t.settings.russian}</SelectItem>
+                  <SelectItem value="en">{t.settings.english}</SelectItem>
+                  <SelectItem value="ar">{t.settings.arabic}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -175,15 +177,15 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Sparkles className="w-5 h-5 text-muted-foreground" />
-                <span>Транскрипция</span>
+                <span>{t.settings.transcription}</span>
               </div>
               <Select value={transcriptionType} onValueChange={(value) => setTranscriptionType(value as 'cyrillic' | 'latin')}>
                 <SelectTrigger className="w-32" data-testid="select-transcription">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cyrillic">Кириллица</SelectItem>
-                  <SelectItem value="latin">Латиница</SelectItem>
+                  <SelectItem value="cyrillic">{t.settings.cyrillic}</SelectItem>
+                  <SelectItem value="latin">{t.settings.latin}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -191,23 +193,23 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground px-1">Поддержка</h2>
+          <h2 className="text-sm font-medium text-muted-foreground px-1">{t.settings.support}</h2>
           <Card className="divide-y divide-border">
             <button className="flex items-center gap-4 p-4 w-full hover-elevate" data-testid="button-help">
               <HelpCircle className="w-5 h-5 text-muted-foreground" />
-              <span className="flex-1 text-left">Помощь и FAQ</span>
+              <span className="flex-1 text-left">{t.settings.help}</span>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
             
             <button className="flex items-center gap-4 p-4 w-full hover-elevate" data-testid="button-feedback">
               <MessageCircle className="w-5 h-5 text-muted-foreground" />
-              <span className="flex-1 text-left">Обратная связь</span>
+              <span className="flex-1 text-left">{t.settings.feedback}</span>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
             
             <button className="flex items-center gap-4 p-4 w-full hover-elevate" data-testid="button-privacy">
               <Shield className="w-5 h-5 text-muted-foreground" />
-              <span className="flex-1 text-left">Политика конфиденциальности</span>
+              <span className="flex-1 text-left">{t.settings.privacy}</span>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
           </Card>

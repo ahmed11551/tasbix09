@@ -51,6 +51,7 @@ interface RecentAction {
 
 export default function TasbihPage() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [location] = useLocation();
   const { data: goals = [] } = useGoals();
   const { data: qazaDebt } = useQazaDebt();
