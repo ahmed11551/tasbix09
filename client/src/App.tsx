@@ -15,11 +15,13 @@ import NotFound from "@/pages/not-found";
 // и был доступен для lazy-loaded страниц
 import { useTranslation } from "@/lib/i18n";
 
-// Принудительно импортируем весь модуль i18n для гарантии включения в shared chunk
+// Принудительно импортируем весь модуль i18n для гарантии включения в bundle
 import * as i18nModule from "@/lib/i18n";
+// Принудительная оценка модуля для включения в bundle
 if (typeof window !== 'undefined') {
-  // Принудительная оценка модуля для включения в bundle
   void i18nModule;
+  // Экспортируем модуль глобально для доступа из любых chunks
+  (window as any).__i18n = i18nModule;
 }
 
 // КРИТИЧНО: Отключаем lazy loading для TasbihPage, чтобы избежать проблем с i18n
