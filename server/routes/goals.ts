@@ -183,41 +183,67 @@ router.patch("/:id", async (req, res, next) => {
     // Авторизация отключена - всегда используем userId из заголовка или default-user
     const userId = getUserId(req) || (req as any).userId || "default-user";
     
+    // Проверяем флаг принудительного применения лимита
+    const shouldEnforceLimit = process.env.ENFORCE_GOAL_LIMIT === 'true';
+    
     try {
       const apiUserId = getUserIdForApi(req);
       const data = await botReplikaPatch<{ goal?: unknown; error?: string }>(`/api/goals/${req.params.id}`, req.body, apiUserId);
       
-      if (data.error) {
+      // Если API вернул ошибку лимита, но мы не принуждаем лимит - игнорируем и обновляем локально
+      if (data.error && data.error === "Goal limit reached") {
+        if (shouldEnforceLimit) {
+          return res.status(403).json(data);
+        } else {
+          // Игнорируем ошибку лимита от API и обновляем локально
+          logger.warn(`Bot.e-replika.ru API returned goal limit for PATCH, but ENFORCE_GOAL_LIMIT is not set. Updating locally for user ${userId}`);
+          // Продолжаем выполнение - переходим к локальному обновлению
+        }
+      } else if (data.error) {
+        // Для других ошибок возвращаем их как есть
         return res.status(403).json(data);
+      } else {
+        // Успешное обновление через API
+        const goal = data.goal || data;
+        return res.json({ goal });
       }
-      
-      const goal = data.goal || data;
-      res.json({ goal });
     } catch (apiError: any) {
+      // Если ошибка лимита от API, но мы не принуждаем лимит - игнорируем
       if (apiError.message?.includes("limit") || apiError.message?.includes("403")) {
         try {
           const errorData = JSON.parse(apiError.message.split(" - ")[1] || "{}");
           if (errorData.error === "Goal limit reached") {
-            return res.status(403).json(errorData);
+            if (shouldEnforceLimit) {
+              return res.status(403).json(errorData);
+            } else {
+              logger.warn(`Bot.e-replika.ru API limit error ignored (ENFORCE_GOAL_LIMIT not set). Updating locally for user ${userId}`);
+              // Продолжаем выполнение - переходим к локальному обновлению
+            }
           }
         } catch {}
       }
       
-      logger.warn("Bot.e-replika.ru API unavailable, using local DB:", apiError.message);
+      if (!apiError.message?.includes("limit")) {
+        logger.warn("Bot.e-replika.ru API unavailable, using local DB:", apiError.message);
+      }
+      
       const parsed = req.body;
       if (parsed.status === 'active') {
         const existingGoal = await storage.getGoal(req.params.id, userId);
         if (existingGoal && existingGoal.status !== 'active') {
-          const limitCheck = await checkGoalLimit(userId);
-          if (!limitCheck.allowed) {
-            return res.status(403).json({
-              error: "Goal limit reached",
-              message: `Вы достигли лимита активных целей (${limitCheck.current}/${limitCheck.limit}) для тарифа "${limitCheck.tier}". Перейдите на более высокий тариф, чтобы активировать больше целей.`,
-              current: limitCheck.current,
-              limit: limitCheck.limit,
-              tier: limitCheck.tier,
-              upgradeRequired: true,
-            });
+          // Проверяем лимит только если принудительно включен
+          if (shouldEnforceLimit) {
+            const limitCheck = await checkGoalLimit(userId);
+            if (!limitCheck.allowed) {
+              return res.status(403).json({
+                error: "Goal limit reached",
+                message: `Вы достигли лимита активных целей (${limitCheck.current}/${limitCheck.limit}) для тарифа "${limitCheck.tier}". Перейдите на более высокий тариф, чтобы активировать больше целей.`,
+                current: limitCheck.current,
+                limit: limitCheck.limit,
+                tier: limitCheck.tier,
+                upgradeRequired: true,
+              });
+            }
           }
         }
       }

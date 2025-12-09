@@ -184,26 +184,6 @@ export default function ReportsPage() {
     toggleHabitDay(habitId, dateKey);
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Мой духовный прогресс',
-          text: `Мой общий прогресс: ${analyticsData.overallCompletionRate}%\nСерия: ${analyticsData.currentStreak} дней\nСегодня: ${analyticsData.todayHabitsCompleted}/${analyticsData.todayHabitsExpected} привычек`,
-        });
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          console.error('Error sharing:', error);
-        }
-      }
-    }
-  };
-
-  const handleDownload = () => {
-    // TODO: Implement PDF/CSV download
-    console.log('Download report');
-  };
-
   const analyticsData = useMemo(() => {
     const activeGoals = goals.filter((g: any) => g.status === 'active');
     const completedGoalsArr = goals.filter((g: any) => g.status === 'completed');
@@ -491,7 +471,27 @@ export default function ReportsPage() {
       todayProgress: todayProgressPercent,
       streakDelta,
     };
-  }, [analyticsPeriod, habits, goals, stats]);
+  }, [analyticsPeriod, habits, goals, tasks]);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Мой духовный прогресс',
+          text: `Мой общий прогресс: ${analyticsData.overallCompletionRate}%\nСерия: ${analyticsData.currentStreak} дней\nСегодня: ${analyticsData.todayHabitsCompleted}/${analyticsData.todayHabitsExpected} привычек`,
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    }
+  };
+
+  const handleDownload = () => {
+    // TODO: Implement PDF/CSV download
+    console.log('Download report');
+  };
 
   const prayerProgress = dailyAzkarData ? {
     fajr: { done: dailyAzkarData.fajr, target: 99 },

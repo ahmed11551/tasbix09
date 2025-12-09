@@ -217,11 +217,20 @@ router.post("/logs", async (req, res, next) => {
     
     const category = logData.category;
     const itemId = logData.itemId;
-    const delta = logData.delta || 0;
+    const delta = typeof logData.delta === 'number' ? logData.delta : 0;
     const eventType = logData.eventType || 'tap'; // Значение по умолчанию
     const sessionId = logData.sessionId;
     const prayerSegment = logData.prayerSegment || 'none';
-    const valueAfter = logData.valueAfter || 0;
+    const valueAfter = typeof logData.valueAfter === 'number' ? logData.valueAfter : 0;
+    
+    // Валидация обязательных полей
+    if (!category || typeof category !== 'string') {
+      return res.status(400).json({ error: "Invalid input", message: "category is required and must be a string" });
+    }
+    
+    if (!eventType || typeof eventType !== 'string') {
+      return res.status(400).json({ error: "Invalid input", message: "eventType is required and must be a string" });
+    }
     
     // Расширенное анти-чит логирование: проверка аномально высокой активности
     if (delta > 0 && (eventType === 'tap' || eventType === 'bulk' || eventType === 'repeat')) {
