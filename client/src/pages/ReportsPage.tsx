@@ -100,9 +100,10 @@ interface MissedItem {
 
 export default function ReportsPage() {
   // ВРЕМЕННО: Локализация отключена
+  // ВРЕМЕННО: Локализация отключена
   const t = {
     reports: {},
-    common: { loading: \'Загрузка...\', error: \'Ошибка\', success: \'Успешно\' },
+    common: { loading: 'Загрузка...', error: 'Ошибка', success: 'Успешно' },
   } as any;
 const { habits, tasks, toggleHabitDay } = useData();
   const { data: goals = [] } = useGoals();
