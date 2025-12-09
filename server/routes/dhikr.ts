@@ -474,7 +474,12 @@ router.delete("/logs/last", async (req, res, next) => {
     });
 
     if (!lastLog) {
-      return res.status(404).json({ error: "No log found to undo" });
+      // Возвращаем 200 с информацией, что нечего отменять (не ошибка)
+      return res.status(200).json({ 
+        deleted: false,
+        message: "Нет действий для отмены",
+        reason: sessionId ? "Логи для этой сессии не найдены" : "Логи не найдены"
+      });
     }
 
     // Проверить, что лог был создан не более 5 секунд назад (защита от старых отмен)

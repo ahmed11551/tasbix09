@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useSearch, Link } from 'wouter';
+import { useSearch, Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -516,6 +516,7 @@ function AIInsight({ habits }: AIInsightProps) {
 
 export default function GoalsPage() {
   const searchString = useSearch();
+  const [location, navigate] = useLocation();
   const searchParams = new URLSearchParams(searchString);
   const highlightHabitId = searchParams.get('highlightHabit');
   const { toast } = useToast();
@@ -637,7 +638,10 @@ export default function GoalsPage() {
       
       setTimeout(() => {
         setHighlightedHabitId(null);
-        window.history.replaceState({}, '', '/goals');
+        // Используем navigate для обновления URL без перезагрузки
+        if (typeof window !== 'undefined') {
+          window.history.replaceState({}, '', '/goals');
+        }
       }, 3000);
     }
   }, [highlightHabitId]);
@@ -895,11 +899,11 @@ export default function GoalsPage() {
     // Если цель связана с тасбихом, переходим на страницу тасбиха с выбранной категорией
     // Страница тасбиха находится на маршруте "/"
     if (goal.linkedCounterType) {
-      // Переход на страницу тасбиха с фильтром по категории и привязкой к цели
-      window.location.href = `/?category=${goal.linkedCounterType}&goalId=${goal.id}`;
+      // Используем navigate для client-side navigation (без перезагрузки страницы)
+      navigate(`/?category=${goal.linkedCounterType}&goalId=${goal.id}`);
     } else {
       // Если цель не связана с тасбихом, просто открываем страницу тасбиха
-      window.location.href = '/';
+      navigate('/');
     }
   };
 
@@ -934,7 +938,7 @@ export default function GoalsPage() {
   const handleContinueSession = (session: any) => {
     // Переход на страницу тасбиха с сохранением информации о сессии
     // Страница тасбиха находится на маршруте "/"
-    window.location.href = `/?sessionId=${session.id}`;
+    navigate(`/?sessionId=${session.id}`);
   };
 
   const handleDeleteSession = (sessionId: string) => {

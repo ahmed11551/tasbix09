@@ -269,17 +269,38 @@ export default function TasbihCounter({
     // Откатываем на сервере через API
     if (sessionId) {
       try {
-        await deleteLastLogMutation.mutateAsync(sessionId);
-        // API успешно откатил - всё готово
+        const result = await deleteLastLogMutation.mutateAsync(sessionId);
+        // Проверяем, был ли лог удален
+        if (result?.deleted === false) {
+          // Лога нет или нечего отменять - это не ошибка
+          toast({ 
+            title: "Нет действий для отмены", 
+            description: result?.message || "Нечего отменять" 
+          });
+          // Восстанавливаем счетчик
+          setCount(count);
+          setRounds(Math.floor(count / ROUND_SIZE));
+          onCountChange?.(count, lastAction.delta, Math.floor(count / ROUND_SIZE));
+        } else {
+          // Успешно откатили
+          toast({ title: "Действие отменено", description: `Откат на ${lastAction.delta} зикров.` });
+        }
       } catch (error: any) {
-        // Если ошибка - показываем уведомление и откатываем локально обратно
-        console.error('Failed to undo on server:', error);
-        toast({
-          title: "Не удалось отменить",
-          description: error?.message || "Попробуйте ещё раз",
-          variant: "destructive",
-        });
-        // Откатываем изменения локально обратно
+        // Если ошибка 404 или "No log found" - не критично
+        const errorMessage = error?.message || '';
+        if (errorMessage.includes('404') || errorMessage.includes('No log found') || errorMessage.includes('Нет действий')) {
+          toast({ 
+            title: "Нет действий для отмены", 
+            description: "Нечего отменять" 
+          });
+        } else {
+          toast({
+            title: "Не удалось отменить",
+            description: errorMessage || "Попробуйте ещё раз",
+            variant: "destructive",
+          });
+        }
+        // Восстанавливаем изменения локально обратно
         setCount(count);
         setRounds(Math.floor(count / ROUND_SIZE));
         onCountChange?.(count, lastAction.delta, Math.floor(count / ROUND_SIZE));

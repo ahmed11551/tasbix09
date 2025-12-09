@@ -129,7 +129,10 @@ router.post("/", async (req, res, next) => {
       }
       
       const limitCheck = await checkGoalLimit(userId);
-      if (!limitCheck.allowed) {
+      // В Docker всегда разрешаем обходить лимит для тестирования (можно отключить через ENFORCE_GOAL_LIMIT=true)
+      const shouldEnforceLimit = process.env.ENFORCE_GOAL_LIMIT === 'true';
+      
+      if (!limitCheck.allowed && shouldEnforceLimit) {
         return res.status(403).json({
           error: "Goal limit reached",
           message: `Вы достигли лимита активных целей (${limitCheck.current}/${limitCheck.limit}) для тарифа "${limitCheck.tier}". Перейдите на более высокий тариф, чтобы создавать больше целей.`,
@@ -138,6 +141,11 @@ router.post("/", async (req, res, next) => {
           tier: limitCheck.tier,
           upgradeRequired: true,
         });
+      }
+      
+      if (!limitCheck.allowed && !shouldEnforceLimit) {
+        // Предупреждаем, но разрешаем создать для тестирования
+        logger.warn(`Goal limit exceeded (allowed for testing): ${limitCheck.current}/${limitCheck.limit} for user ${userId}`);
       }
       const goal = await storage.createGoal(userId, req.body);
       res.status(201).json({ goal });

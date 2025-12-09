@@ -211,6 +211,11 @@ export const dhikrApi = {
       ? `/api/dhikr/logs/last?sessionId=${sessionId}`
       : '/api/dhikr/logs/last';
     const res = await apiRequest("DELETE", url, undefined, getAuthOptions());
+    // API может вернуть 200 с deleted: false, что не является ошибкой
+    if (!res.ok && res.status !== 200) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || errorData.error || `HTTP ${res.status}`);
+    }
     return res.json();
   },
 };
