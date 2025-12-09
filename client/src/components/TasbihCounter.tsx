@@ -276,8 +276,8 @@ export default function TasbihCounter({
         if (result?.deleted === false) {
           // Лога нет или нечего отменять - это не ошибка
           toast({ 
-            title: "Нет действий для отмены", 
-            description: result?.message || "Нечего отменять" 
+            title: t.tasbih.noActionToUndo, 
+            description: result?.message || t.tasbih.noActionToUndo
           });
           // Восстанавливаем счетчик
           setCount(count);
