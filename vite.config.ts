@@ -143,6 +143,7 @@ export default defineConfig({
               return null;
             }
             // Для Docker - оригинальная логика
+            // Но i18n модули всегда в main bundle (проверено выше)
             if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || 
                 id.includes('node_modules/react/index') || id.includes('node_modules/react-dom/index')) {
               return 'vendor';
@@ -156,6 +157,7 @@ export default defineConfig({
               const pageName = id.split('/pages/')[1]?.split('.')[0];
               return `page-${pageName}`;
             }
+            // Все остальное (включая i18n, если не попал выше) - в main bundle
             return null;
           }
           
