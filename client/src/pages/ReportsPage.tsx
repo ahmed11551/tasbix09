@@ -101,7 +101,31 @@ interface MissedItem {
 export default function ReportsPage() {
   // ВРЕМЕННО: Локализация отключена
   const t = {
-    reports: {},
+    reports: {
+      title: 'Отчеты',
+      overallProgress: 'Общий прогресс',
+      for: 'За',
+      week: 'неделю',
+      month: 'месяц',
+      quarter: 'квартал',
+      year: 'год',
+      completed: 'Выполнено',
+      streak: 'Серия',
+      daysInRow: 'дней подряд',
+      pending: 'Ожидает',
+      everythingDone: 'Все сделано!',
+      actions: 'действий',
+      today: 'Сегодня',
+      habits: 'привычек',
+      missed: 'Пропущено',
+      forPeriod: 'за период',
+      dynamics: 'Динамика',
+      achievements: 'Достижения',
+      history: 'История',
+      todayTab: 'Сегодня',
+      achievementsTab: 'Достижения',
+      historyTab: 'История',
+    },
     common: { loading: 'Загрузка...', error: 'Ошибка', success: 'Успешно' },
   } as any;
   const { habits, tasks, toggleHabitDay } = useData();

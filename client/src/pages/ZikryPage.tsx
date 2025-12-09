@@ -131,9 +131,17 @@ interface ZikrDetailSheetProps {
 }
 
 function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetailSheetProps) {
+  const { toast } = useToast();
   // ВРЕМЕННО: Локализация отключена
   const t = {
-    zikry: {},
+    zikry: { 
+      startTasbih: 'Перейти к тасбиху', 
+      copied: 'Скопировано', 
+      copiedForShare: 'Скопировано для отправки', 
+      translation: 'Перевод', 
+      source: 'Источник', 
+      benefit: 'Польза' 
+    },
     common: { loading: 'Загрузка...', error: 'Ошибка', success: 'Успешно' },
   } as any;
   const [copied, setCopied] = useState(false);
@@ -265,10 +273,25 @@ type ViewState =
 export default function ZikryPage() {
   // ВРЕМЕННО: Локализация отключена
   const t = {
-    zikry: { title: 'Зикры', startTasbih: 'Перейти к тасбиху', copied: 'Скопировано', copiedForShare: 'Скопировано для отправки', translation: 'Перевод', source: 'Источник', benefit: 'Польза' },
+    zikry: { 
+      title: 'Зикры', 
+      startTasbih: 'Перейти к тасбиху', 
+      copied: 'Скопировано', 
+      copiedForShare: 'Скопировано для отправки', 
+      translation: 'Перевод', 
+      source: 'Источник', 
+      benefit: 'Польза',
+      found: 'Найдено:',
+      categories: 'Категории',
+      favorites: 'Избранное',
+      share: 'Поделиться',
+      todayDua: 'Дуа дня',
+      noFavorites: 'Нет избранного',
+      noFavoritesDescription: 'Добавьте зикры в избранное, чтобы быстро к ним возвращаться'
+    },
     common: { loading: 'Загрузка...', error: 'Ошибка', success: 'Успешно', search: 'Поиск' },
   } as any;
-const [viewState, setViewState] = useState<ViewState>({ type: 'categories' });
+  const [viewState, setViewState] = useState<ViewState>({ type: 'categories' });
   const [activeTab, setActiveTab] = useState<'categories' | 'favorites'>('categories');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ZikrItem | null>(null);
