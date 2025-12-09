@@ -160,9 +160,14 @@ export default defineConfig({
             if (id.includes('node_modules')) {
               return 'vendor';
             }
-            // Страницы в отдельные чанки для lazy loading
+            // КРИТИЧНО: TasbihPage должна быть в main bundle, так как использует i18n
+            // Остальные страницы в отдельные чанки для lazy loading
             if (id.includes('/pages/')) {
               const pageName = id.split('/pages/')[1]?.split('.')[0];
+              // TasbihPage - главная страница, включаем в main bundle для гарантии загрузки i18n
+              if (pageName === 'TasbihPage') {
+                return null; // В main bundle
+              }
               return `page-${pageName}`;
             }
             // Все остальное (включая i18n, если не попал выше) - в main bundle
