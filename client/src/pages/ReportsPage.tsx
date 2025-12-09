@@ -131,6 +131,27 @@ export default function ReportsPage() {
       completeTodayHabits: 'Выполнить сегодняшние привычки',
       left: 'Осталось',
       missedHabits: 'Пропущенные привычки',
+      allHabitsDone: 'Все привычки выполнены!',
+      greatWork: 'Отличная работа!',
+      overdueTasks: 'Просроченные задачи',
+      task: 'задача',
+      tasksRequireAttention: 'задач требуют',
+      recoverHabits: 'Восстановить',
+      habit: 'привычку',
+      streakGrowing: 'Серия растет!',
+      daysInPeriod: 'дней за период',
+      allUnderControl: 'Все под контролем',
+      noTasksRequiringAttention: 'Нет задач, требующих внимания',
+      noMissedHabits: 'Нет пропущенных привычек',
+      mark: 'Отметить',
+      pendingActions: 'Ожидающие действия',
+      overdueTasksCount: 'Просроченные задачи',
+      deadline: 'Срок',
+      salawatAfterPrayer: 'Салават после намаза',
+      tasksToday: 'Задачи на сегодня',
+      all: 'Все',
+      noTasksToday: 'Нет задач на сегодня',
+      subtasks: 'подзадач',
     },
     common: { loading: 'Загрузка...', error: 'Ошибка', success: 'Успешно' },
   } as any;
@@ -161,6 +182,26 @@ export default function ReportsPage() {
 
   const handleMarkHabitComplete = (habitId: string, dateKey: string) => {
     toggleHabitDay(habitId, dateKey);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Мой духовный прогресс',
+          text: `Мой общий прогресс: ${analyticsData.overallCompletionRate}%\nСерия: ${analyticsData.currentStreak} дней\nСегодня: ${analyticsData.todayHabitsCompleted}/${analyticsData.todayHabitsExpected} привычек`,
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    }
+  };
+
+  const handleDownload = () => {
+    // TODO: Implement PDF/CSV download
+    console.log('Download report');
   };
 
   const analyticsData = useMemo(() => {
@@ -482,10 +523,10 @@ export default function ReportsPage() {
         <div className="flex items-center justify-between px-4 h-14 max-w-md mx-auto">
           <h1 className="font-display font-semibold text-lg">{t.reports.title}</h1>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" data-testid="button-share">
+            <Button variant="ghost" size="icon" onClick={handleShare} data-testid="button-share">
               <Share2 className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" data-testid="button-download">
+            <Button variant="ghost" size="icon" onClick={handleDownload} data-testid="button-download">
               <Download className="w-5 h-5" />
             </Button>
           </div>
