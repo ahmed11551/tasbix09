@@ -264,7 +264,12 @@ type ViewState =
   | { type: 'items'; category: ZikrCatalogCategory; subcategory: ZikrSubcategory };
 
 export default function ZikryPage() {
-  const [viewState, setViewState] = useState<ViewState>({ type: 'categories' });
+  // ВРЕМЕННО: Локализация отключена
+  const t = {
+    zikry: { title: \'Зикры\', startTasbih: \'Перейти к тасбиху\', copied: \'Скопировано\', copiedForShare: \'Скопировано для отправки\', translation: \'Перевод\', source: \'Источник\', benefit: \'Польза\' },
+    common: { loading: \'Загрузка...\', error: \'Ошибка\', success: \'Успешно\', search: \'Поиск\' },
+  } as any;
+const [viewState, setViewState] = useState<ViewState>({ type: 'categories' });
   const [activeTab, setActiveTab] = useState<'categories' | 'favorites'>('categories');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ZikrItem | null>(null);
