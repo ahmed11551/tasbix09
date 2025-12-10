@@ -24,7 +24,7 @@ services:
       DATABASE_URL: postgresql://smarttasbih:smarttasbih_password@postgres:5432/smarttasbih_db
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-key-change-in-production-min-32-chars-long}
       TEST_TOKEN: ${TEST_TOKEN:-test_token_123}
-      BOT_REPLIKA_API_URL: ${BOT_REPLIKA_API_URL:-https://Bot.e-replika.ru/docs}
+      BOT_REPLIKA_API_URL: ${BOT_REPLIKA_API_URL:-https://bot.e-replika.ru}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-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}
       PORT: 5001
