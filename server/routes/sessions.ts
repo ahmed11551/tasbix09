@@ -62,21 +62,33 @@ router.get("/unfinished", async (req, res, next) => {
       take: 5, // Максимум 5 незавершенных сессий
     });
 
-    // Для каждой сессии получить последний лог и посчитать текущий счетчик
-    const sessionsWithCount = await Promise.all(
-      unfinishedSessions.map(async (session) => {
-        // Получить все логи сессии для подсчета текущего счетчика
-        const logs = await prisma.dhikrLog.findMany({
-          where: {
-            sessionId: session.id,
-          },
-          orderBy: {
-            atTs: 'asc',
-          },
-        });
+    // Оптимизация: получаем все логи для всех сессий одним запросом
+    const sessionIds = unfinishedSessions.map(s => s.id);
+    const allLogs = sessionIds.length > 0 ? await prisma.dhikrLog.findMany({
+      where: {
+        sessionId: { in: sessionIds },
+      },
+      orderBy: {
+        atTs: 'asc',
+      },
+    }) : [];
 
-        // Подсчитать текущий счетчик из всех логов
-        const currentCount = logs.reduce((sum, log) => {
+    // Группируем логи по sessionId
+    const logsBySession = allLogs.reduce((acc, log) => {
+      if (!acc[log.sessionId]) {
+        acc[log.sessionId] = [];
+      }
+      acc[log.sessionId].push(log);
+      return acc;
+    }, {} as Record<string, typeof allLogs>);
+
+    // Для каждой сессии посчитать текущий счетчик
+    const sessionsWithCount = unfinishedSessions.map((session) => {
+      // Получаем логи для этой сессии из уже загруженных
+      const logs = logsBySession[session.id] || [];
+
+      // Подсчитать текущий счетчик из всех логов
+      const currentCount = logs.reduce((sum, log) => {
           if (log.eventType === 'tap' || log.eventType === 'bulk' || log.eventType === 'repeat') {
             return log.valueAfter || sum + log.delta;
           }

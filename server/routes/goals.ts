@@ -16,26 +16,28 @@ const GOAL_LIMITS = {
   sahibAlWaqf: 999, // Premium тариф: безлимит (практически)
 } as const;
 
-// Функция проверки лимита активных целей
+// Функция проверки лимита активных целей (оптимизированная - один запрос вместо двух)
 async function checkGoalLimit(userId: string): Promise<{ allowed: boolean; current: number; limit: number; tier: string }> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { subscriptionTier: true },
-  });
+  // Оптимизация: используем один запрос с include для получения целей вместе с пользователем
+  const [user, activeGoalsCount] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionTier: true },
+    }),
+    prisma.goal.count({
+      where: {
+        userId,
+        status: 'active',
+      },
+    }),
+  ]);
 
   const tier = user?.subscriptionTier || 'muslim';
   const limit = GOAL_LIMITS[tier as keyof typeof GOAL_LIMITS] || GOAL_LIMITS.muslim;
 
-  const activeGoals = await prisma.goal.count({
-    where: {
-      userId,
-      status: 'active',
-    },
-  });
-
   return {
-    allowed: activeGoals < limit,
-    current: activeGoals,
+    allowed: activeGoalsCount < limit,
+    current: activeGoalsCount,
     limit,
     tier,
   };

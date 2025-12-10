@@ -355,20 +355,21 @@ router.post("/logs", async (req, res, next) => {
       
       // Автоматически обновить прогресс связанных целей (личных и групповых)
       if (shouldUpdateProgress && category) {
-        await Promise.all([
-          updateLinkedGoalsProgress(userId, category, itemId, delta),
-          updateGroupGoalsProgress(userId, category, itemId, delta),
+        // Оптимизация: обновляем прогресс и получаем цель параллельно
+        const [, linkedGoal] = await Promise.all([
+          Promise.all([
+            updateLinkedGoalsProgress(userId, category, itemId, delta),
+            updateGroupGoalsProgress(userId, category, itemId, delta),
+          ]),
+          prisma.goal.findFirst({
+            where: {
+              userId,
+              status: 'active',
+              linkedCounterType: category,
+              ...(itemId ? { itemId } : {}),
+            },
+          }),
         ]);
-        
-        // Получить обновленную цель для response
-        const linkedGoal = await prisma.goal.findFirst({
-          where: {
-            userId,
-            status: 'active',
-            linkedCounterType: category,
-            ...(itemId ? { itemId } : {}),
-          },
-        });
         
         if (linkedGoal) {
           updatedGoal = {
@@ -425,20 +426,21 @@ router.post("/logs", async (req, res, next) => {
       
       // Автоматически обновить прогресс связанных целей (личных и групповых)
       if (shouldUpdateProgress && category) {
-        await Promise.all([
-          updateLinkedGoalsProgress(userId, category, itemId, delta),
-          updateGroupGoalsProgress(userId, category, itemId, delta),
+        // Оптимизация: обновляем прогресс и получаем цель параллельно
+        const [, linkedGoal] = await Promise.all([
+          Promise.all([
+            updateLinkedGoalsProgress(userId, category, itemId, delta),
+            updateGroupGoalsProgress(userId, category, itemId, delta),
+          ]),
+          prisma.goal.findFirst({
+            where: {
+              userId,
+              status: 'active',
+              linkedCounterType: category,
+              ...(itemId ? { itemId } : {}),
+            },
+          }),
         ]);
-        
-        // Получить обновленную цель для response
-        const linkedGoal = await prisma.goal.findFirst({
-          where: {
-            userId,
-            status: 'active',
-            linkedCounterType: category,
-            ...(itemId ? { itemId } : {}),
-          },
-        });
         
         if (linkedGoal) {
           updatedGoal = {
