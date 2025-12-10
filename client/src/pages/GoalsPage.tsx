@@ -729,8 +729,9 @@ export default function GoalsPage() {
   }, [highlightHabitId]);
 
   // Используем данные из API, если доступны, иначе из контекста
-  const habitsList = apiHabits.length > 0 ? apiHabits : habits;
-  const tasksList = apiTasks.length > 0 ? apiTasks : tasks;
+  // Используем данные напрямую из API hooks (уже унифицированы)
+  const habitsList = habits;
+  const tasksList = tasks;
 
   const filteredHabits = useMemo(() => {
     if (!habitCategoryFilter) return habitsList;
