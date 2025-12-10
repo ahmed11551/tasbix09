@@ -35,8 +35,10 @@ services:
         condition: service_healthy
     command: >
       sh -c "
+        echo 'Генерация Prisma клиента...' &&
+        npx prisma generate &&
         echo 'Применение миграций...' &&
-        PRISMA_GENERATE_SKIP_AUTOINSTALL=true npx prisma migrate deploy || echo 'Миграции уже применены' &&
+        npx prisma migrate deploy || (echo 'Попытка создания схемы через db push...' && npx prisma db push --accept-data-loss || echo 'Миграции не применены, продолжаем...') &&
         echo 'Запуск приложения...' &&
         if [ -f dist/index.cjs ]; then
           node dist/index.cjs
