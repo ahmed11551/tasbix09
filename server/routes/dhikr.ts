@@ -6,6 +6,7 @@ import { botReplikaGet, botReplikaPost, getUserIdForApi } from "../lib/bot-repli
 import { logger } from "../lib/logger";
 import { prisma } from "../db-prisma";
 import { updateGroupGoalsProgress } from "../lib/group-goal-sync";
+import { getUserFriendlyErrorMessage, formatZodError } from "../lib/user-friendly-errors";
 
 const router = Router();
 router.use(requireAuth);
@@ -278,9 +279,10 @@ router.post("/logs", async (req, res, next) => {
           body: req.body,
           userId 
         });
+        const userMessage = formatZodError(error);
         return res.status(400).json({ 
           error: "Validation error", 
-          message: "Неверные данные запроса",
+          message: userMessage,
           details: error.errors.map(e => ({
             path: e.path.join('.'),
             message: e.message,

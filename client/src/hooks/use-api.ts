@@ -44,11 +44,12 @@ export function useCreateHabit() {
       }
     },
     onSuccess: (data) => {
+      // Данные уже обновлены оптимистично в onMutate, просто заменяем временный объект на реальный
       queryClient.setQueryData<Habit[]>(["habits"], (old = []) => {
         const filtered = old.filter(h => !h.id.startsWith('temp-'));
         return [...filtered, data];
       });
-      queryClient.invalidateQueries({ queryKey: ["habits"] });
+      // Инвалидируем только stats, так как habits уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -82,10 +83,11 @@ export function useUpdateHabit() {
       }
     },
     onSuccess: (data) => {
+      // Данные уже обновлены оптимистично в onMutate, просто синхронизируем с сервером
       queryClient.setQueryData<Habit[]>(["habits"], (old = []) =>
         old.map(habit => (habit.id === data.id ? data : habit))
       );
-      queryClient.invalidateQueries({ queryKey: ["habits"] });
+      // Инвалидируем только stats, так как habits уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -114,7 +116,8 @@ export function useDeleteHabit() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["habits"] });
+      // Данные уже обновлены оптимистично в onMutate через фильтрацию
+      // Инвалидируем только stats, так как habits уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -164,11 +167,12 @@ export function useCreateTask() {
       }
     },
     onSuccess: (data) => {
+      // Данные уже обновлены оптимистично в onMutate, просто заменяем временный объект на реальный
       queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
         const filtered = old.filter(t => !t.id.startsWith('temp-'));
         return [...filtered, data];
       });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // Инвалидируем только stats, так как tasks уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -202,10 +206,11 @@ export function useUpdateTask() {
       }
     },
     onSuccess: (data) => {
+      // Данные уже обновлены оптимистично в onMutate, просто синхронизируем с сервером
       queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
         old.map(task => (task.id === data.id ? data : task))
       );
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // Инвалидируем только stats, так как tasks уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -234,7 +239,8 @@ export function useDeleteTask() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // Данные уже обновлены оптимистично в onMutate через фильтрацию
+      // Инвалидируем только stats, так как tasks уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -285,12 +291,12 @@ export function useCreateGoal() {
       }
     },
     onSuccess: (data) => {
-      // Обновляем оптимистичное значение на реальное
+      // Данные уже обновлены оптимистично в onMutate, просто заменяем временный объект на реальный
       queryClient.setQueryData<Goal[]>(["goals"], (old = []) => {
         const filtered = old.filter(g => !g.id.startsWith('temp-'));
         return [...filtered, data];
       });
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      // Данные уже обновлены, инвалидация не нужна
     },
   });
 }
@@ -324,11 +330,11 @@ export function useUpdateGoal() {
       }
     },
     onSuccess: (data) => {
-      // Обновляем на реальное значение
+      // Данные уже обновлены оптимистично в onMutate, просто синхронизируем с сервером
       queryClient.setQueryData<Goal[]>(["goals"], (old = []) =>
         old.map(goal => (goal.id === data.id ? data : goal))
       );
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      // Инвалидируем только stats, так как goals уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
@@ -359,7 +365,8 @@ export function useDeleteGoal() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      // Данные уже обновлены оптимистично в onMutate через фильтрацию
+      // Инвалидируем только stats, так как goals уже обновлен
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });

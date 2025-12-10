@@ -1,5 +1,23 @@
 import { QueryClient } from "@tanstack/react-query";
 
+/**
+ * Пользовательские сообщения об ошибках
+ */
+const USER_FRIENDLY_MESSAGES: Record<string, string> = {
+  '400': 'Неверные данные запроса',
+  '401': 'Требуется авторизация',
+  '403': 'Доступ запрещен',
+  '404': 'Не найдено',
+  '408': 'Превышено время ожидания. Попробуйте еще раз',
+  '409': 'Конфликт данных',
+  '422': 'Ошибка валидации',
+  '429': 'Слишком много запросов. Подождите немного',
+  '500': 'Внутренняя ошибка сервера',
+  '503': 'Сервис временно недоступен',
+  'NETWORK_ERROR': 'Ошибка сети. Проверьте подключение к интернету',
+  'TIMEOUT_ERROR': 'Превышено время ожидания. Попробуйте еще раз',
+};
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = await res.text();
@@ -7,10 +25,18 @@ async function throwIfResNotOk(res: Response) {
     let errorData: Record<string, unknown> | null = null;
     try {
       const json = JSON.parse(text);
-      errorMessage = (json.error as string) || (json.message as string) || errorMessage;
+      // Используем пользовательское сообщение из ответа, если есть
+      const userMessage = (json.message as string) || (json.error as string);
+      if (userMessage) {
+        errorMessage = userMessage;
+      } else {
+        // Используем стандартные сообщения для статусов
+        errorMessage = USER_FRIENDLY_MESSAGES[String(res.status)] || errorMessage;
+      }
       errorData = json; // Сохраняем весь объект ответа
     } catch {
-      // Not JSON, use text as is
+      // Not JSON, use text as is, но пробуем найти стандартное сообщение
+      errorMessage = USER_FRIENDLY_MESSAGES[String(res.status)] || errorMessage;
     }
     interface ApiError extends Error {
       status?: number;
@@ -69,7 +95,7 @@ export async function apiRequest(
       clearTimeout(timeoutId);
       
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-        const timeoutError: any = new Error('Request timeout after 30s');
+        const timeoutError: any = new Error(USER_FRIENDLY_MESSAGES['TIMEOUT_ERROR'] || 'Request timeout after 30s');
         timeoutError.status = 408;
         timeoutError.isTimeoutError = true;
         throw timeoutError;
@@ -78,17 +104,17 @@ export async function apiRequest(
       throw fetchError;
     }
   } catch (networkError: any) {
-    // Обработка сетевых ошибок (нет интернета, сервер недоступен, CORS)
-    interface NetworkError extends Error {
-      status?: number;
-      isNetworkError?: boolean;
-    }
-    const error: NetworkError = new Error(
-      networkError.message || 'Сервер недоступен. Проверьте подключение к интернету.'
-    );
-    error.status = 0;
-    error.isNetworkError = true;
-    throw error;
+      // Обработка сетевых ошибок (нет интернета, сервер недоступен, CORS)
+      interface NetworkError extends Error {
+        status?: number;
+        isNetworkError?: boolean;
+      }
+      const error: NetworkError = new Error(
+        USER_FRIENDLY_MESSAGES['NETWORK_ERROR'] || 'Сервер недоступен. Проверьте подключение к интернету.'
+      );
+      error.status = 0;
+      error.isNetworkError = true;
+      throw error;
   }
 
   await throwIfResNotOk(res);
