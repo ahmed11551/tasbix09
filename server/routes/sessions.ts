@@ -89,24 +89,23 @@ router.get("/unfinished", async (req, res, next) => {
 
       // Подсчитать текущий счетчик из всех логов
       const currentCount = logs.reduce((sum, log) => {
-          if (log.eventType === 'tap' || log.eventType === 'bulk' || log.eventType === 'repeat') {
-            return log.valueAfter || sum + log.delta;
-          }
-          return sum;
-        }, 0);
+        if (log.eventType === 'tap' || log.eventType === 'bulk' || log.eventType === 'repeat') {
+          return log.valueAfter || sum + log.delta;
+        }
+        return sum;
+      }, 0);
 
         // Получить информацию о последнем логе (категория, itemId)
         const lastLog = logs[logs.length - 1];
         
-        return {
-          ...session,
-          currentCount,
-          category: lastLog?.category,
-          itemId: lastLog?.itemId,
-          prayerSegment: session.prayerSegment,
-        };
-      })
-    );
+      return {
+        ...session,
+        currentCount,
+        category: lastLog?.category,
+        itemId: lastLog?.itemId,
+        prayerSegment: session.prayerSegment,
+      };
+    });
 
     res.json({ sessions: sessionsWithCount });
   } catch (error) {

@@ -43,38 +43,6 @@ const upsertDailyAzkarSchema = z.object({
   isComplete: z.boolean().default(false),
 });
 
-// Zod схемы для валидации
-const createDhikrLogSchema = z.object({
-  sessionId: z.string().uuid().optional(),
-  goalId: z.string().uuid().optional().nullable(),
-  category: z.enum(['general', 'surah', 'ayah', 'dua', 'azkar', 'names99', 'salawat', 'kalimat']),
-  itemId: z.string().optional().nullable(),
-  eventType: z.enum(['tap', 'bulk', 'repeat', 'learn_mark', 'goal_completed', 'auto_reset']),
-  delta: z.number().int().min(0),
-  valueAfter: z.number().int().min(0),
-  prayerSegment: z.enum(['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'none']).default('none'),
-  offlineId: z.string().uuid().optional(),
-  atTs: z.string().datetime().or(z.date()).optional(),
-  tz: z.string().default('UTC'),
-});
-
-const addFavoriteSchema = z.object({
-  category: z.enum(['general', 'surah', 'ayah', 'dua', 'azkar', 'names99', 'salawat', 'kalimat']),
-  itemId: z.string().min(1),
-});
-
-const upsertDailyAzkarSchema = z.object({
-  dateLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  userId: z.string().optional(),
-  fajr: z.number().int().min(0).default(0),
-  dhuhr: z.number().int().min(0).default(0),
-  asr: z.number().int().min(0).default(0),
-  maghrib: z.number().int().min(0).default(0),
-  isha: z.number().int().min(0).default(0),
-  total: z.number().int().min(0).default(0),
-  isComplete: z.boolean().default(false),
-});
-
 /**
  * Автоматически обновляет прогресс всех активных целей, связанных с использованием тасбиха
  * @param userId - ID пользователя

@@ -4,8 +4,10 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 
-# Install OpenSSL для Prisma ДО npm install
-RUN apk add --no-cache openssl openssl-dev
+    # Install OpenSSL для Prisma ДО npm install (с retry для сетевых проблем)
+    RUN apk update && apk add --no-cache openssl openssl-dev || \
+        (sleep 5 && apk update && apk add --no-cache openssl openssl-dev) || \
+        echo "OpenSSL установка пропущена - могут быть предупреждения Prisma"
 
 # Copy package files first
 COPY package.json package-lock.json* ./
@@ -19,10 +21,12 @@ RUN     npm config set fetch-retries 15 && \
     npm config set fetch-retry-mintimeout 30000 && \
     npm config set fetch-retry-maxtimeout 180000 && \
     npm config set registry https://registry.npmjs.org/ && \
-    (npm ci --legacy-peer-deps --ignore-scripts || \
-     (sleep 15 && npm install --legacy-peer-deps --ignore-scripts) || \
-     (sleep 30 && npm install --legacy-peer-deps --ignore-scripts)) && \
-    npx prisma generate
+    npm install --legacy-peer-deps --ignore-scripts
+
+# Prisma generate с несколькими попытками (может падать из-за сетевых проблем)
+RUN     for i in 1 2 3 4 5; do \
+        npx prisma generate && break || (echo "Попытка $i не удалась, ждем..." && sleep 15); \
+    done
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -49,8 +53,8 @@ RUN apk add --no-cache openssl || \
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
+    COPY --from=deps /app/node_modules ./node_modules
+    # .prisma уже включен в node_modules, не нужно копировать отдельно
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY package.json ./
