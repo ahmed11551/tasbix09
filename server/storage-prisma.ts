@@ -326,24 +326,32 @@ export class PrismaStorage implements IStorage {
         createData.session = { connect: { id: sessionId } };
       } else {
         // Если session не существует, создать новую
+        const sessionCreateData: any = {
+          userId,
+          prayerSegment: prayerSegment,
+          startedAt: new Date(),
+        };
+        // Используем relation goal вместо прямого goalId
+        if (goalId) {
+          sessionCreateData.goal = { connect: { id: goalId } };
+        }
         createData.session = {
-          create: {
-            userId,
-            goalId: goalId, // Используем обработанный goalId
-            prayerSegment: prayerSegment,
-            startedAt: new Date(),
-          },
+          create: sessionCreateData,
         };
       }
     } else {
       // Если sessionId не указан, создать новую session автоматически
+      const sessionCreateData: any = {
+        userId,
+        prayerSegment: prayerSegment,
+        startedAt: new Date(),
+      };
+      // Используем relation goal вместо прямого goalId
+      if (goalId) {
+        sessionCreateData.goal = { connect: { id: goalId } };
+      }
       createData.session = {
-        create: {
-          userId,
-          goalId: goalId, // Используем обработанный goalId
-          prayerSegment: prayerSegment,
-          startedAt: new Date(),
-        },
+        create: sessionCreateData,
       };
     }
     

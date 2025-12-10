@@ -149,16 +149,22 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
   const { data: favorites = [] } = useFavorites();
   const toggleFavoriteMutation = useToggleFavorite();
   
-  // Определяем, является ли текущий зикр избранным
-  const isFavorite = item ? favorites.some((f: any) => f.category === item.category && f.itemId === item.id) : false;
-  
-  // Обновляем избранное при изменении item или favorites
-  useEffect(() => {
-    if (item && favorites) {
-      const favorite = favorites.some((f: any) => f.category === item.category && f.itemId === item.id);
-      // Состояние будет обновлено автоматически через isFavorite
+  // Определяем категорию для текущего зикра
+  const getItemCategory = (item: ZikrItem): ZikrCategory | null => {
+    if (!item) return null;
+    for (const cat of zikryCatalog) {
+      if (cat.subcategories.some(sub => sub.id === item.subcategoryId)) {
+        return cat.id;
+      }
     }
-  }, [item, favorites]);
+    return null;
+  };
+  
+  // Определяем, является ли текущий зикр избранным
+  const itemCategory = item ? getItemCategory(item) : null;
+  const isFavorite = item && itemCategory 
+    ? favorites.some((f: any) => f.category === itemCategory && f.itemId === item.id) 
+    : false;
 
   const handleCopy = async () => {
     if (!item) return;
@@ -247,15 +253,15 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
             size="icon"
             onClick={async () => {
               if (!item) return;
-              // Определяем категорию по subcategoryId
-              let category: ZikrCategory | null = null;
-              for (const cat of zikryCatalog) {
-                if (cat.subcategories.some(sub => sub.id === item.subcategoryId)) {
-                  category = cat.id;
-                  break;
-                }
+              const category = getItemCategory(item);
+              if (!category) {
+                toast({
+                  title: t.common.error,
+                  description: 'Не удалось определить категорию зикра',
+                  variant: "destructive",
+                });
+                return;
               }
-              if (!category) return;
               
               try {
                 await toggleFavoriteMutation.mutateAsync({
@@ -263,10 +269,13 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
                   itemId: item.id,
                   isFavorite,
                 });
-              } catch (error) {
+                toast({
+                  title: isFavorite ? 'Удалено из избранного' : 'Добавлено в избранное',
+                });
+              } catch (error: any) {
                 toast({
                   title: t.common.error,
-                  description: 'Не удалось обновить избранное',
+                  description: error.message || 'Не удалось обновить избранное',
                   variant: "destructive",
                 });
               }
