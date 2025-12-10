@@ -398,6 +398,22 @@ export default function TasbihPage() {
   }, [currentSessionId]);
 
   const handlePrayerSelect = async (prayer: PrayerSegment) => {
+    // Сохранить текущий батч логов перед переключением намаза
+    if (batchTimeoutRef.current) {
+      clearTimeout(batchTimeoutRef.current);
+      batchTimeoutRef.current = null;
+    }
+    
+    if (logBatchRef.current.length > 0) {
+      try {
+        const lastLog = logBatchRef.current[logBatchRef.current.length - 1];
+        await saveDhikrLog(lastLog.delta, lastLog.valueAfter);
+        logBatchRef.current = [];
+      } catch (error) {
+        // Ошибка обрабатывается через React Query
+      }
+    }
+    
     // Завершить текущую сессию перед сменой
     if (currentSessionId) {
       try {
