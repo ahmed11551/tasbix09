@@ -294,9 +294,14 @@ export class PrismaStorage implements IStorage {
 
   async createDhikrLog(userId: string, log: Prisma.DhikrLogCreateInput): Promise<DhikrLog> {
     // Преобразовать sessionId в связь session
-    const { sessionId, ...logData } = log as any;
+    const { sessionId, goalId: rawGoalId, ...logData } = log as any;
+    
+    // Обработать goalId - это простое поле String?, а не relation
+    const goalId = rawGoalId || null;
+    
     const createData: Prisma.DhikrLogCreateInput = {
       ...logData,
+      goalId: goalId, // Простое поле, не relation
       offlineId: (logData.offlineId as string) || randomUUID(),
       user: { connect: { id: userId } },
     };
@@ -312,7 +317,7 @@ export class PrismaStorage implements IStorage {
         createData.session = {
           create: {
             userId,
-            goalId: logData.goalId || null,
+            goalId: goalId, // Используем обработанный goalId
             prayerSegment: logData.prayerSegment || 'none',
             startedAt: new Date(),
           },
@@ -323,6 +328,7 @@ export class PrismaStorage implements IStorage {
       createData.session = {
         create: {
           userId,
+          goalId: goalId, // Используем обработанный goalId
           goalId: logData.goalId || null,
           prayerSegment: logData.prayerSegment || 'none',
           startedAt: new Date(),
