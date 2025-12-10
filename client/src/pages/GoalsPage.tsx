@@ -1125,7 +1125,7 @@ export default function GoalsPage() {
 
         {/* Быстрое действие: После намаза */}
         <Card className="p-3 bg-primary/5 border-primary/20">
-          <Link href="/tasbih">
+          <Link href="/">
             <div className="flex items-center justify-between cursor-pointer hover:bg-primary/10 rounded-lg p-2 -m-2 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
