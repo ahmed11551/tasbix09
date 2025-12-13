@@ -34,13 +34,13 @@ const addFavoriteSchema = z.object({
 const upsertDailyAzkarSchema = z.object({
   dateLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   userId: z.string().optional(),
-  fajr: z.number().int().min(0).default(0),
-  dhuhr: z.number().int().min(0).default(0),
-  asr: z.number().int().min(0).default(0),
-  maghrib: z.number().int().min(0).default(0),
-  isha: z.number().int().min(0).default(0),
-  total: z.number().int().min(0).default(0),
-  isComplete: z.boolean().default(false),
+  fajr: z.number().int().min(0).optional().default(0),
+  dhuhr: z.number().int().min(0).optional().default(0),
+  asr: z.number().int().min(0).optional().default(0),
+  maghrib: z.number().int().min(0).optional().default(0),
+  isha: z.number().int().min(0).optional().default(0),
+  total: z.number().int().min(0).optional().default(0),
+  isComplete: z.boolean().optional().default(false),
 });
 
 /**
