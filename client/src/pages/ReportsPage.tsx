@@ -70,7 +70,12 @@ import { getIconByName } from '@/lib/iconUtils';
 
 const generateRecentDates = (daysBack: number): string[] => {
   const dates: string[] = [];
-  const today = new Date();
+  // Используем функцию чтобы избежать hydration mismatch
+  const getToday = () => {
+    if (typeof window === 'undefined') return new Date();
+    return new Date();
+  };
+  const today = getToday();
   for (let i = 0; i < daysBack; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);

@@ -348,8 +348,17 @@ function shouldCompleteOnDay(habit: Habit, date: Date): boolean {
 }
 
 function AIInsight({ habits }: AIInsightProps) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Используем useState чтобы избежать hydration mismatch
+  const [today] = useState(() => {
+    if (typeof window === 'undefined') {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const todayKey = formatDateKey(today);
   const weekDays = getWeekDays();
   
@@ -781,7 +790,11 @@ export default function GoalsPage() {
     let result = tasksList;
     
     if (taskFilter === 'today') {
-      const today = new Date().toISOString().split('T')[0];
+      // Используем функцию чтобы избежать hydration mismatch
+      const today = (() => {
+        if (typeof window === 'undefined') return new Date().toISOString().split('T')[0];
+        return new Date().toISOString().split('T')[0];
+      })();
       result = result.filter(t => t.dueDate === today);
     } else if (taskFilter === 'tomorrow') {
       const tomorrow = new Date();
