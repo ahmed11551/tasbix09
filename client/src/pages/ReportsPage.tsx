@@ -181,12 +181,22 @@ export default function ReportsPage() {
   const lockedBadges = badges.filter((b: any) => !b.isUnlocked);
 
   const handleMarkHabitComplete = (habitId: string, dateKey: string) => {
+    // Защита от невалидных данных
+    if (!habitId || !dateKey) {
+      console.error('handleMarkHabitComplete: habitId or dateKey is invalid', { habitId, dateKey });
+      return;
+    }
     toggleHabitDay(habitId, dateKey);
   };
 
   const analyticsData = useMemo(() => {
-    const activeGoals = goals.filter((g: any) => g.status === 'active');
-    const completedGoalsArr = goals.filter((g: any) => g.status === 'completed');
+    // Защита от undefined массивов
+    const safeGoals = goals || [];
+    const safeHabits = habits || [];
+    const safeTasks = tasks || [];
+
+    const activeGoals = safeGoals.filter((g: any) => g.status === 'active');
+    const completedGoalsArr = safeGoals.filter((g: any) => g.status === 'completed');
     
     const goalsProgress = activeGoals.reduce((acc, g) => acc + g.currentProgress, 0);
     const goalsTarget = activeGoals.reduce((acc, g) => acc + g.targetCount, 0);
@@ -216,7 +226,7 @@ export default function ReportsPage() {
     let habitsMissed = 0;
     const missedItems: MissedItem[] = [];
     
-    habits.forEach(habit => {
+    safeHabits.forEach(habit => {
       const habitCreatedAt = habit.createdAt ? new Date(habit.createdAt) : periodStart;
       habitCreatedAt.setHours(0, 0, 0, 0);
       
@@ -253,9 +263,9 @@ export default function ReportsPage() {
       });
     });
     
-    const tasksTotal = tasks.length;
-    const tasksCompleted = tasks.filter(t => t.isCompleted).length;
-    const tasksOverdue = tasks.filter(t => {
+    const tasksTotal = safeTasks.length;
+    const tasksCompleted = safeTasks.filter(t => t.isCompleted).length;
+    const tasksOverdue = safeTasks.filter(t => {
       if (t.isCompleted || !t.dueDate) return false;
       return t.dueDate < todayKey;
     }).length;
@@ -345,7 +355,7 @@ export default function ReportsPage() {
         const date = new Date(dateKey);
         date.setHours(0, 0, 0, 0);
         
-        habits.forEach(habit => {
+        safeHabits.forEach(habit => {
           const habitCreatedAt = habit.createdAt ? new Date(habit.createdAt) : periodStart;
           habitCreatedAt.setHours(0, 0, 0, 0);
           
@@ -405,7 +415,7 @@ export default function ReportsPage() {
     let todayHabitsExpected = 0;
     const todayHabitsList: { habit: Habit; isCompleted: boolean }[] = [];
     
-    habits.forEach(habit => {
+    safeHabits.forEach(habit => {
       const date = new Date(todayStr);
       const dayOfWeek = (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const)[date.getDay()];
       const isScheduled = habit.repeatType === 'daily' || 
@@ -420,16 +430,16 @@ export default function ReportsPage() {
       }
     });
     
-    const todayTasks = tasks.filter(t => t.dueDate === todayStr || !t.dueDate);
-    const pendingTasks = tasks.filter(t => !t.isCompleted && (t.dueDate === todayStr || !t.dueDate));
-    const overdueTasks = tasks.filter(t => !t.isCompleted && t.dueDate && t.dueDate < todayStr);
+    const todayTasks = safeTasks.filter(t => t.dueDate === todayStr || !t.dueDate);
+    const pendingTasks = safeTasks.filter(t => !t.isCompleted && (t.dueDate === todayStr || !t.dueDate));
+    const overdueTasks = safeTasks.filter(t => !t.isCompleted && t.dueDate && t.dueDate < todayStr);
     
     const todayTasksCount = pendingTasks.length;
     const pendingActions = (todayHabitsExpected - todayHabitsCompleted) + todayTasksCount + tasksOverdue;
     
-    const currentStreak = Math.max(...habits.map(h => h.currentStreak), 0);
-    const avgStreak = habits.length > 0 
-      ? Math.round(habits.reduce((acc, h) => acc + h.currentStreak, 0) / habits.length)
+    const currentStreak = safeHabits.length > 0 ? Math.max(...safeHabits.map(h => h.currentStreak), 0) : 0;
+    const avgStreak = safeHabits.length > 0 
+      ? Math.round(safeHabits.reduce((acc, h) => acc + h.currentStreak, 0) / safeHabits.length)
       : 0;
     
     const previousPeriodMissed = habitsMissed > 0 ? Math.max(0, habitsMissed - 2) : 0;
@@ -439,7 +449,7 @@ export default function ReportsPage() {
       ? Math.round((todayHabitsCompleted / todayHabitsExpected) * 100)
       : 100;
     
-    const firstStreak = habits[0]?.currentStreak || 0;
+    const firstStreak = safeHabits[0]?.currentStreak || 0;
     const streakDelta = currentStreak > 0 ? Math.max(0, currentStreak - avgStreak) : 0;
     
     return {

@@ -86,6 +86,12 @@ function getDailyPlan(goal: Goal): number | null {
 }
 
 export default function GoalCard({ goal, onContinue, onEdit, onPause, onResume, compact = false }: GoalCardProps) {
+  // Защита от невалидных данных
+  if (!goal || !goal.id) {
+    console.error('GoalCard: goal is invalid', goal);
+    return null;
+  }
+
   const Icon = categoryIcons[goal.category] || Sparkles;
   const progress = (goal.currentProgress / goal.targetCount) * 100;
   const status = getStatusIndicator(goal);

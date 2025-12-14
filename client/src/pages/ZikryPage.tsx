@@ -294,10 +294,14 @@ function ZikrDetailSheet({ item, open, onOpenChange, onStartTasbih }: ZikrDetail
           <Button variant="ghost" size="icon" data-testid="button-bookmark">
             <BookmarkPlus className="w-5 h-5" />
           </Button>
-          {onStartTasbih && (
+          {onStartTasbih && item && (
             <Button
               className="gap-2"
               onClick={() => {
+                if (!item || !item.id) {
+                  console.error('onStartTasbih: item is invalid', item);
+                  return;
+                }
                 onStartTasbih(item);
                 onOpenChange(false);
               }}
@@ -469,14 +473,20 @@ export default function ZikryPage() {
                 <p className="text-sm text-muted-foreground">
                   {t.zikry.found} {searchResults.length}
                 </p>
-                {searchResults.map((item, index) => (
-                  <ZikrItemCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    onOpen={() => handleOpenItem(item)}
-                  />
-                ))}
+                {(searchResults || []).map((item, index) => {
+                  if (!item || !item.id) {
+                    console.error('ZikryPage: invalid item in searchResults', item);
+                    return null;
+                  }
+                  return (
+                    <ZikrItemCard
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      onOpen={() => handleOpenItem(item)}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <>
