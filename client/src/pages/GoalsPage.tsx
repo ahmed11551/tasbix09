@@ -542,8 +542,11 @@ export default function GoalsPage() {
   const deleteTaskMutation = useDeleteTask();
   const checkBadgesMutation = useCheckBadges();
   
-  // Загрузка данных ежедневных азкаров
-  const today = new Date().toISOString().split('T')[0];
+  // Загрузка данных ежедневных азкаров (используем useState чтобы избежать hydration mismatch)
+  const [today] = useState(() => {
+    if (typeof window === 'undefined') return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
+  });
   const { data: dailyAzkarData } = useDailyAzkar(today);
   
   // Функции-обертки для совместимости с существующим кодом

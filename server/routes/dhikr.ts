@@ -543,8 +543,19 @@ router.post("/daily-azkar", async (req, res, next) => {
       }
       
       // Удаляем userId из body, так как Prisma использует связь через user
-      const { userId: _, ...azkarData } = body;
-      const azkar = await storage.upsertDailyAzkar(userId, azkarData);
+      // Гарантируем что все числовые поля являются числами (могут прийти как строки)
+      const { userId: _, ...azkarData } = body as any;
+      const cleanData = {
+        ...azkarData,
+        fajr: Number(azkarData.fajr) || 0,
+        dhuhr: Number(azkarData.dhuhr) || 0,
+        asr: Number(azkarData.asr) || 0,
+        maghrib: Number(azkarData.maghrib) || 0,
+        isha: Number(azkarData.isha) || 0,
+        total: Number(azkarData.total) || 0,
+        isComplete: Boolean(azkarData.isComplete),
+      };
+      const azkar = await storage.upsertDailyAzkar(userId, cleanData);
       res.json({ azkar });
     }
   } catch (error) {

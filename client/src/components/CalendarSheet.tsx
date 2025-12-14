@@ -131,7 +131,11 @@ function DayRing({ hasHabits, hasTasks, hasOverdue, filter, isToday, children }:
 }
 
 export default function CalendarSheet({ open, onOpenChange, habits, tasks }: CalendarSheetProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Используем useState чтобы избежать hydration mismatch
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (typeof window === 'undefined') return new Date();
+    return new Date();
+  });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
@@ -140,8 +144,17 @@ export default function CalendarSheet({ open, onOpenChange, habits, tasks }: Cal
   const month = currentDate.getMonth();
   
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Используем useState чтобы избежать hydration mismatch
+  const [today] = useState(() => {
+    if (typeof window === 'undefined') {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const todayKey = formatDateKey(today);
   
   const getDateEventInfo = (date: Date): DateEventInfo => {

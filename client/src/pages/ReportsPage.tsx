@@ -161,7 +161,12 @@ export default function ReportsPage() {
   const { data: badges = [] } = useBadges();
   const checkBadgesMutation = useCheckBadges();
   const { data: categoryStreaks = [] } = useCategoryStreaks();
-  const today = new Date().toISOString().split('T')[0];
+  // Используем useState чтобы избежать hydration mismatch
+  const [todayStr] = useState(() => {
+    if (typeof window === 'undefined') return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
+  });
+  const today = todayStr;
   const { data: dailyAzkarData } = useDailyAzkar(today);
   const { data: activityHeatmapData = [] } = useActivityHeatmap({ days: 365 });
   
@@ -202,8 +207,17 @@ export default function ReportsPage() {
     const goalsTarget = activeGoals.reduce((acc, g) => acc + g.targetCount, 0);
     const goalsRemaining = Math.max(0, goalsTarget - goalsProgress);
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // Используем useState чтобы избежать hydration mismatch
+  const [today] = useState(() => {
+    if (typeof window === 'undefined') {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
     const todayKey = today.toISOString().split('T')[0];
     
     let periodDays = 7;
@@ -1144,7 +1158,12 @@ export default function ReportsPage() {
               </div>
               
               {(() => {
-                const today = new Date().toISOString().split('T')[0];
+                // Используем useState чтобы избежать hydration mismatch
+  const [todayStr] = useState(() => {
+    if (typeof window === 'undefined') return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
+  });
+  const today = todayStr;
                 const todayTasks = tasks.filter((t: Task) => t.dueDate === today || !t.dueDate);
                 const completedCount = todayTasks.filter((t: Task) => t.isCompleted).length;
                 

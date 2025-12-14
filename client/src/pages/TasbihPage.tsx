@@ -61,7 +61,11 @@ export default function TasbihPage() {
   const { data: goals = [] } = useGoals();
   const { data: qazaDebt } = useQazaDebt();
   const { data: stats } = useStats();
-  const today = new Date().toISOString().split('T')[0];
+  // Используем useState чтобы избежать hydration mismatch (Date может быть разным на сервере и клиенте)
+  const [today] = useState(() => {
+    if (typeof window === 'undefined') return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
+  });
   const { data: dailyAzkarData } = useDailyAzkar(today);
   const createSessionMutation = useCreateSession();
   const updateSessionMutation = useUpdateSession();
@@ -74,15 +78,21 @@ export default function TasbihPage() {
   const checkBadgesMutation = useCheckBadges();
   const { data: categoryStreaks = [] } = useCategoryStreaks();
   
-  // Обработка query параметров из URL
-  const urlParams = useMemo(() => {
-    if (typeof window === 'undefined') return {};
+  // Обработка query параметров из URL (используем useEffect чтобы избежать hydration ошибок)
+  const [urlParams, setUrlParams] = useState<{
+    category: string | null;
+    goalId: string | null;
+    sessionId: string | null;
+  }>({ category: null, goalId: null, sessionId: null });
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     const searchParams = new URLSearchParams(window.location.search);
-    return {
+    setUrlParams({
       category: searchParams.get('category'),
       goalId: searchParams.get('goalId'),
       sessionId: searchParams.get('sessionId'),
-    };
+    });
   }, [location]);
   
   // Загружаем каталог азкаров с API
@@ -137,7 +147,19 @@ export default function TasbihPage() {
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerSegment>('none');
   const [currentCount, setCurrentCount] = useState(0);
   const [currentRounds, setCurrentRounds] = useState(0);
-  const [counterKey, setCounterKey] = useState(() => Date.now().toString());
+  // Используем useRef для генерации ключа только один раз на клиенте
+  const counterKeyRef = useRef<string | null>(null);
+  const getCounterKey = () => {
+    if (counterKeyRef.current === null) {
+      counterKeyRef.current = Date.now().toString();
+    }
+    return counterKeyRef.current;
+  };
+  const [counterKey, setCounterKey] = useState(() => {
+    // Генерируем ключ только на клиенте, чтобы избежать hydration mismatch
+    if (typeof window === 'undefined') return '0';
+    return getCounterKey();
+  });
   const [showTranscription, setShowTranscription] = useState(true);
   const [showTranslation, setShowTranslation] = useState(true);
   const [showAudioPlayer, setShowAudioPlayer] = useState(true);
