@@ -345,29 +345,28 @@ export default function TasbihPage() {
         if (selectedPrayer !== 'none') {
           // ВАЖНО: Используем актуальные данные из React Query кэша, а не локальную переменную
           // Это гарантирует, что при переключении между намазами используются актуальные данные
-          const cachedData = queryClient.getQueryData<typeof dailyAzkar>(['daily-azkar', today]);
-          const currentAzkar = cachedData || dailyAzkarData || dailyAzkar;
+          const cachedData = queryClient.getQueryData<any>(['daily-azkar', today]);
+          const currentAzkar = cachedData?.azkar || cachedData || dailyAzkarData?.azkar || dailyAzkarData || dailyAzkar;
           
-          const prayerKey = selectedPrayer as keyof typeof currentAzkar;
-          const currentPrayerCount = ((currentAzkar[prayerKey] as number) || 0) + lastLog.delta;
-          const currentTotal = ((currentAzkar.total as number) || 0) + lastLog.delta;
+          const prayerKey = selectedPrayer as 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+          const currentPrayerCount = Number(currentAzkar?.[prayerKey] || 0) + lastLog.delta;
+          const currentTotal = Number(currentAzkar?.total || 0) + lastLog.delta;
+          
+          // Не включаем userId в данные - он обрабатывается на сервере
+          // Гарантируем что все поля числа, а не строки
           const newDailyAzkar = {
-            userId: currentAzkar.userId || '',
             dateLocal: today,
-            fajr: (currentAzkar.fajr as number) || 0,
-            dhuhr: (currentAzkar.dhuhr as number) || 0,
-            asr: (currentAzkar.asr as number) || 0,
-            maghrib: (currentAzkar.maghrib as number) || 0,
-            isha: (currentAzkar.isha as number) || 0,
+            fajr: Number(currentAzkar?.fajr || 0),
+            dhuhr: Number(currentAzkar?.dhuhr || 0),
+            asr: Number(currentAzkar?.asr || 0),
+            maghrib: Number(currentAzkar?.maghrib || 0),
+            isha: Number(currentAzkar?.isha || 0),
             [prayerKey]: currentPrayerCount,
             total: currentTotal,
             isComplete: currentTotal >= 495,
           };
 
-          await upsertDailyAzkarMutation.mutateAsync({
-            dateLocal: today,
-            ...newDailyAzkar,
-          });
+          await upsertDailyAzkarMutation.mutateAsync(newDailyAzkar);
 
           // Обновить прогресс Каза, если есть долг и это салаваты
           // (считаем, что салаваты после намаза засчитываются как восполнение)

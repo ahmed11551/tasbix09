@@ -1,6 +1,7 @@
 // Глобальная обработка ошибок браузерных расширений
 // "Could not establish connection" - это ошибка расширений браузера
 
+// Импортируем как можно раньше, до загрузки React
 if (typeof window !== 'undefined') {
   // Обработка ошибок Promise (необработанные отклонения)
   window.addEventListener('unhandledrejection', (event) => {

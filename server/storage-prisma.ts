@@ -401,6 +401,8 @@ export class PrismaStorage implements IStorage {
 
   async upsertDailyAzkar(userId: string, data: Prisma.DailyAzkarCreateInput | Prisma.DailyAzkarUpdateInput): Promise<DailyAzkar> {
     const dateLocal = (data as any).dateLocal;
+    // Удаляем userId из данных, если он там есть, так как Prisma использует связь через user
+    const { userId: _, ...cleanData } = data as any;
     return prisma.dailyAzkar.upsert({
       where: {
         userId_dateLocal: {
@@ -408,11 +410,11 @@ export class PrismaStorage implements IStorage {
           dateLocal,
         },
       },
-      update: data as Prisma.DailyAzkarUpdateInput,
+      update: cleanData as Prisma.DailyAzkarUpdateInput,
       create: {
-        ...(data as Prisma.DailyAzkarCreateInput),
+        ...cleanData,
         user: { connect: { id: userId } },
-      },
+      } as Prisma.DailyAzkarCreateInput,
     });
   }
 

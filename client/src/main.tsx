@@ -1,10 +1,12 @@
+// Импортируем обработчик ошибок ПЕРВЫМ, чтобы он перехватывал все ошибки
+import "./lib/error-handler"; // Глобальная обработка ошибок расширений браузера
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { initTelegramWebApp } from "./lib/telegram";
 import { initSentry } from "./lib/sentry";
-import "./lib/error-handler"; // Глобальная обработка ошибок расширений браузера
 // ВРЕМЕННО: Локализация отключена из-за проблем с chunking
 // import "@/lib/i18n";
 // import * as i18nModule from "@/lib/i18n";
