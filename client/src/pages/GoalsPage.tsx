@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, startTransition } from 'react';
 import { useSearch, Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -923,7 +923,7 @@ export default function GoalsPage() {
       }
       
       // Проверить бейджи после создания/обновления цели
-      React.startTransition(() => {
+      startTransition(() => {
         checkBadgesMutation.mutate();
       });
     } catch (error: any) {

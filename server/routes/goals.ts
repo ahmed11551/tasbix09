@@ -5,9 +5,28 @@ import { prisma } from "../db-prisma";
 import { z } from "zod";
 import { botReplikaGet, botReplikaPost, botReplikaPatch, botReplikaDelete, getUserIdForApi } from "../lib/bot-replika-api";
 import { logger } from "../lib/logger";
+import { formatZodError } from "../lib/user-friendly-errors";
 
 const router = Router();
 router.use(requireAuth);
+
+// Zod схемы для валидации
+const createGoalSchema = z.object({
+  category: z.enum(['general', 'surah', 'ayah', 'dua', 'azkar', 'names99', 'salawat', 'kalimat']),
+  itemId: z.string().optional().nullable(),
+  goalType: z.enum(['recite', 'learn']),
+  title: z.string().min(1, "Название цели не может быть пустым").max(255, "Название цели слишком длинное"),
+  targetCount: z.number().int().positive("Целевое значение должно быть положительным числом"),
+  currentProgress: z.number().int().min(0).optional().default(0),
+  status: z.enum(['active', 'completed', 'archived', 'paused']).optional().default('active'),
+  startDate: z.string().datetime().or(z.date()),
+  endDate: z.string().datetime().or(z.date()).optional().nullable(),
+  linkedCounterType: z.string().optional().nullable(),
+  repeatType: z.enum(['never', 'daily', 'weekly', 'monthly', 'custom']).optional().default('never'),
+  lastResetDate: z.string().datetime().or(z.date()).optional().nullable(),
+});
+
+const updateGoalSchema = createGoalSchema.partial();
 
 // Лимиты активных целей по тарифам
 const GOAL_LIMITS = {
@@ -169,12 +188,45 @@ router.post("/", async (req, res, next) => {
         // Предупреждаем, но разрешаем создать для тестирования
         logger.warn(`Goal limit exceeded (allowed for testing): ${limitCheck.current}/${limitCheck.limit} for user ${userId}`);
       }
-      const goal = await storage.createGoal(userId, req.body);
+      
+      // Валидация через Zod схему
+      let goalData;
+      try {
+        goalData = createGoalSchema.parse(req.body);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          logger.error(`POST /api/goals: Validation error`, { 
+            errors: validationError.errors,
+            body: req.body,
+            userId 
+          });
+          const userMessage = formatZodError(validationError);
+          return res.status(400).json({ 
+            error: "Validation error", 
+            message: userMessage,
+            details: validationError.errors.map(e => ({
+              path: e.path.join('.'),
+              message: e.message,
+            }))
+          });
+        }
+        throw validationError;
+      }
+      
+      const goal = await storage.createGoal(userId, goalData);
       res.status(201).json({ goal });
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid input", details: error.errors });
+      const userMessage = formatZodError(error);
+      return res.status(400).json({ 
+        error: "Validation error", 
+        message: userMessage,
+        details: error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message,
+        }))
+      });
     }
     next(error);
   }
@@ -249,12 +301,46 @@ router.patch("/:id", async (req, res, next) => {
           }
         }
       }
-      const goal = await storage.updateGoal(req.params.id, userId, parsed);
+      
+      // Валидация через Zod схему
+      let goalData;
+      try {
+        goalData = updateGoalSchema.parse(parsed);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          logger.error(`PATCH /api/goals/:id: Validation error`, { 
+            errors: validationError.errors,
+            body: parsed,
+            userId,
+            goalId: req.params.id
+          });
+          const userMessage = formatZodError(validationError);
+          return res.status(400).json({ 
+            error: "Validation error", 
+            message: userMessage,
+            details: validationError.errors.map(e => ({
+              path: e.path.join('.'),
+              message: e.message,
+            }))
+          });
+        }
+        throw validationError;
+      }
+      
+      const goal = await storage.updateGoal(req.params.id, userId, goalData);
       res.json({ goal });
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid input", details: error.errors });
+      const userMessage = formatZodError(error);
+      return res.status(400).json({ 
+        error: "Validation error", 
+        message: userMessage,
+        details: error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message,
+        }))
+      });
     }
     if (error instanceof Error && error.message === "Goal not found") {
       return res.status(404).json({ error: error.message });

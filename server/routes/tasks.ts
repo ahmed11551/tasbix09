@@ -5,9 +5,38 @@ import { z } from "zod";
 import { botReplikaGet, botReplikaPost, botReplikaPatch, botReplikaDelete, getUserIdForApi } from "../lib/bot-replika-api";
 import { logger } from "../lib/logger";
 import { prisma } from "../db-prisma";
+import { formatZodError } from "../lib/user-friendly-errors";
 
 const router = Router();
 router.use(requireAuth);
+
+// Zod схемы для валидации
+const subtaskSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "Название подзадачи не может быть пустым"),
+  isCompleted: z.boolean(),
+});
+
+const reminderSchema = z.object({
+  id: z.string(),
+  time: z.string(),
+  enabled: z.boolean(),
+  sound: z.string().optional(),
+});
+
+const createTaskSchema = z.object({
+  title: z.string().min(1, "Название задачи не может быть пустым").max(255, "Название задачи слишком длинное"),
+  description: z.string().optional().nullable(),
+  dueDate: z.string().datetime().or(z.date()).optional().nullable(),
+  dueTime: z.string().optional().nullable(),
+  priority: z.enum(['low', 'medium', 'high']).optional().default('medium'),
+  isCompleted: z.boolean().optional().default(false),
+  completedAt: z.string().datetime().or(z.date()).optional().nullable(),
+  subtasks: z.array(subtaskSchema).optional().default([]),
+  reminders: z.array(reminderSchema).optional().default([]),
+});
+
+const updateTaskSchema = createTaskSchema.partial();
 
 router.get("/", async (req, res, next) => {
   try {
@@ -79,8 +108,32 @@ router.post("/", async (req, res, next) => {
         });
       }
       
+      // Валидация через Zod схему
+      let taskData;
       try {
-        const task = await storage.createTask(userId, req.body);
+        taskData = createTaskSchema.parse(req.body);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          logger.error(`POST /api/tasks: Validation error`, { 
+            errors: validationError.errors,
+            body: req.body,
+            userId 
+          });
+          const userMessage = formatZodError(validationError);
+          return res.status(400).json({ 
+            error: "Validation error", 
+            message: userMessage,
+            details: validationError.errors.map(e => ({
+              path: e.path.join('.'),
+              message: e.message,
+            }))
+          });
+        }
+        throw validationError;
+      }
+      
+      try {
+        const task = await storage.createTask(userId, taskData);
         res.status(201).json({ task });
       } catch (createError: any) {
         logger.error("Error creating task:", createError);
@@ -103,7 +156,15 @@ router.post("/", async (req, res, next) => {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid input", details: error.errors });
+      const userMessage = formatZodError(error);
+      return res.status(400).json({ 
+        error: "Validation error", 
+        message: userMessage,
+        details: error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message,
+        }))
+      });
     }
     next(error);
   }
@@ -121,12 +182,46 @@ router.patch("/:id", async (req, res, next) => {
       res.json({ task });
     } catch (apiError: any) {
       logger.warn("Bot.e-replika.ru API unavailable, using local DB:", apiError.message);
-      const task = await storage.updateTask(req.params.id, userId, req.body);
+      
+      // Валидация через Zod схему
+      let taskData;
+      try {
+        taskData = updateTaskSchema.parse(req.body);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          logger.error(`PATCH /api/tasks/:id: Validation error`, { 
+            errors: validationError.errors,
+            body: req.body,
+            userId,
+            taskId: req.params.id
+          });
+          const userMessage = formatZodError(validationError);
+          return res.status(400).json({ 
+            error: "Validation error", 
+            message: userMessage,
+            details: validationError.errors.map(e => ({
+              path: e.path.join('.'),
+              message: e.message,
+            }))
+          });
+        }
+        throw validationError;
+      }
+      
+      const task = await storage.updateTask(req.params.id, userId, taskData);
       res.json({ task });
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid input", details: error.errors });
+      const userMessage = formatZodError(error);
+      return res.status(400).json({ 
+        error: "Validation error", 
+        message: userMessage,
+        details: error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message,
+        }))
+      });
     }
     if (error instanceof Error && error.message === "Task not found") {
       return res.status(404).json({ error: error.message });
