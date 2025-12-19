@@ -19,10 +19,10 @@ import NotFound from "@/pages/not-found";
 // ВРЕМЕННО: Локализация отключена
 // import * as i18nModule from "@/lib/i18n";
 
-// КРИТИЧНО: Отключаем lazy loading для TasbihPage, чтобы избежать проблем с i18n
-// Модуль i18n должен быть доступен ДО загрузки страницы
+// КРИТИЧНО: Отключаем lazy loading для TasbihPage и GoalsPage, чтобы избежать проблем с React и i18n
+// Модуль i18n и React должны быть доступны ДО загрузки страницы
 import TasbihPage from "@/pages/TasbihPage";
-const GoalsPage = lazy(() => import("@/pages/GoalsPage"));
+import GoalsPage from "@/pages/GoalsPage";
 const ZikryPage = lazy(() => import("@/pages/ZikryPage"));
 const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
