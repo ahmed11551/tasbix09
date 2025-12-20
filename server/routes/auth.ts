@@ -109,14 +109,13 @@ router.post("/register", async (req, res, next) => {
               where: { username: parsed.username },
               update: {
                 password: hashedPassword,
-                lastLogin: new Date(),
               },
               create: {
                 // id НЕ указываем - Prisma генерирует автоматически через @default(uuid())
                 username: parsed.username,
                 password: hashedPassword,
               },
-            } as any); // Type assertion для избежания TS2353 на Vercel
+            });
           }
         } catch (localError) {
           // Игнорируем ошибки локальной синхронизации

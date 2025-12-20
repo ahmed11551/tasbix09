@@ -6,7 +6,7 @@ import { errorHandler } from '../server/middleware/error-handler';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error - типы cors доступны через @types/cors, но TypeScript на Vercel может не видеть их
+// @ts-ignore - типы cors доступны через @types/cors, но TypeScript на Vercel может не видеть их
 import cors from 'cors';
 
 // Инициализация Express приложения (singleton для переиспользования между вызовами)

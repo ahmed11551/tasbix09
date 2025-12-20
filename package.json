@@ -84,10 +84,10 @@
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0",
     "cors": "^2.8.5",
-    "@vercel/node": "^3.0.0",
-    "@types/cors": "^2.8.17"
+    "@vercel/node": "^3.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@replit/vite-plugin-cartographer": "^0.4.4",
     "@replit/vite-plugin-dev-banner": "^0.1.1",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
